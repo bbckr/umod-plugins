@@ -10,6 +10,21 @@ namespace Oxide.Plugins
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : RustPlugin
     {
+        private const String ANONYMIZED_NAME = "StreamerFriendly";
 
+        void Loaded()
+        {
+            // Anonymize player info
+            var activeBasePlayers = BasePlayer.activePlayerList;
+            for (int i = 0; i < activeBasePlayers.Count; i++) {
+                Anonymize(activeBasePlayers[i].IPlayer.Id);
+            }
+        }
+
+        private void Anonymize(string id) {
+            var steamId = new SteamId();
+            steamId.Value = Convert.ToUInt64(id);
+            SteamServer.UpdatePlayer(steamId, ANONYMIZED_NAME, 0);
+        }
     }
 }
