@@ -2,7 +2,7 @@
 
 A collection of [uMod](https://umod.org/) plugins for running on a modded [PlayRust](https://rust.facepunch.com/) dedicated server.
 
-# Running locally
+# Local Development
 
 ## Prerequistes
 
