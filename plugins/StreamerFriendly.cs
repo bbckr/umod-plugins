@@ -21,6 +21,12 @@ namespace Oxide.Plugins
             }
         }
 
+        void OnUserConnected(IPlayer player)
+        {
+            // Anonymize player info
+            Anonymize(player.Id);
+        }
+
         private void Anonymize(string id) {
             var steamId = new SteamId();
             steamId.Value = Convert.ToUInt64(id);
