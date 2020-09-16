@@ -9,10 +9,12 @@ import (
 )
 
 var (
+	// CONNECT_IP is the client connect ip for the server
 	CONNECT_IP      = os.Getenv("CONNECT_IP")
 	ANONYMIZED_NAME = "StreamerFriendly"
 )
 
+// Test_StreamerFriendly is expected to be ran against a populated server with the plugin loaded
 func Test_StreamerFriendly(t *testing.T) {
 	client, err := a2s.NewClient(CONNECT_IP)
 	if err != nil {
