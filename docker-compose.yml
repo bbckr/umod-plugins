@@ -1,0 +1,25 @@
+version: "3.6"
+services:
+  rust:
+    # https://github.com/Didstopia/rust-server/blob/master/Dockerfile
+    image: didstopia/rust-server:latest
+    volumes:
+      - ./plugins/:/steamcmd/rust/oxide/plugins/
+      - rust_data:/steamcmd/rust/
+    ports:
+      - "28015:28015/udp"
+      - "28015:28015/tcp"
+      - "28016:28016"
+      - "8081:8080"
+    environment:
+      RUST_SERVER_PORT: 28015
+      RUST_RCON_PORT: 28016
+      RUST_SERVER_NAME: my-server
+      RUST_SERVER_WORLDSIZE: 1500
+      RUST_RCON_WEB: 0
+      RUST_OXIDE_ENABLED: 1
+      RUST_OXIDE_UPDATE_ON_BOOT: 0
+      RUST_START_MODE: 2
+      RUST_UPDATE_CHECKING: 0
+volumes:
+  rust_data:
