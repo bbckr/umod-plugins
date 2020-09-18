@@ -11,17 +11,38 @@
 	  <Reference Include="Facepunch.Console">
       <HintPath>./bin/Managed/Facepunch.Console.dll</HintPath>
     </Reference>
+	  <Reference Include="Facepunch.GoogleSheets">
+      <HintPath>./bin/Managed/Facepunch.GoogleSheets.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Input">
+      <HintPath>./bin/Managed/Facepunch.Input.dll</HintPath>
+    </Reference>
 	  <Reference Include="Facepunch.Network">
       <HintPath>./bin/Managed/Facepunch.Network.dll</HintPath>
     </Reference>
+	  <Reference Include="Facepunch.Raknet">
+      <HintPath>./bin/Managed/Facepunch.Raknet.dll</HintPath>
+    </Reference>
 	  <Reference Include="Facepunch.Rcon">
       <HintPath>./bin/Managed/Facepunch.Rcon.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Skeleton">
+      <HintPath>./bin/Managed/Facepunch.Skeleton.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Sqlite">
+      <HintPath>./bin/Managed/Facepunch.Sqlite.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.SteamNetworking">
+      <HintPath>./bin/Managed/Facepunch.SteamNetworking.dll</HintPath>
     </Reference>
 	  <Reference Include="Facepunch.Steamworks">
       <HintPath>./bin/Managed/Facepunch.Steamworks.Posix.dll</HintPath>
     </Reference>
 	  <Reference Include="Facepunch.System">
       <HintPath>./bin/Managed/Facepunch.System.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Unity">
+      <HintPath>./bin/Managed/Facepunch.Unity.dll</HintPath>
     </Reference>
 	  <Reference Include="Facepunch.UnityEngine">
       <HintPath>./bin/Managed/Facepunch.UnityEngine.dll</HintPath>
@@ -41,6 +62,15 @@
 	  <Reference Include="Oxide.Unity">
       <HintPath>./bin/Managed/Oxide.Unity.dll</HintPath>
     </Reference>
+    <Reference Include="Rust.Data">
+      <HintPath>./bin/Managed/Rust.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Rust.Demo">
+      <HintPath>./bin/Managed/Rust.Demo.dll</HintPath>
+    </Reference>
+    <Reference Include="Rust.Global">
+      <HintPath>./bin/Managed/Rust.Global.dll</HintPath>
+    </Reference>
     <Reference Include="Rust.Platform">
       <HintPath>./bin/Managed/Rust.Platform.dll</HintPath>
     </Reference>
@@ -49,6 +79,12 @@
     </Reference>
 	  <Reference Include="Rust.Platform.Steam">
       <HintPath>./bin/Managed/Rust.Platform.Steam.dll</HintPath>
+    </Reference>
+    <Reference Include="Rust.UI">
+      <HintPath>./bin/Managed/Rust.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Rust.World">
+      <HintPath>./bin/Managed/Rust.World.dll</HintPath>
     </Reference>
 	  <Reference Include="UnityEngine">
       <HintPath>./bin/Managed/UnityEngine.dll</HintPath>
