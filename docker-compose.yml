@@ -3,6 +3,7 @@ services:
   rust:
     # https://github.com/Didstopia/rust-server/blob/master/Dockerfile
     image: didstopia/rust-server:latest
+    container_name: local-rust-server
     volumes:
       - ./plugins/:/steamcmd/rust/oxide/plugins/
       - rust_data:/steamcmd/rust/

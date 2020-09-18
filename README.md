@@ -26,6 +26,18 @@ docker-compose down -v
 
 Make sure your Docker daemon is allocated enough RAM to properly start up the server (~6gbs).
 
+## Enabling code completion
+
+``` bash
+# if you haven't already ran docker-compose up, run the container
+docker-compose up -d
+
+# copy the dlls into your project directory
+docker cp lost-rust-server:/steamcmd/rust/RustDedicated_Data/Managed/ ./.bin/
+
+# for visual studio, add the dlls as references
+```
+
 ## Running tests locally against a server
 
 Run the go tests included to see if the plugin is properly loaded and functional:
