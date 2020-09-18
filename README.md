@@ -33,7 +33,7 @@ Make sure your Docker daemon is allocated enough RAM to properly start up the se
 docker-compose up -d
 
 # copy the dlls into your project directory
-docker cp lost-rust-server:/steamcmd/rust/RustDedicated_Data/Managed/ ./.bin/
+docker cp local-rust-server:/steamcmd/rust/RustDedicated_Data/Managed/ ./.bin/
 
 # for visual studio, add the dlls as references
 ```
