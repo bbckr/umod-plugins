@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <Reference Include="Assembly-CSharp">
+      <HintPath>./bin/Managed/Assembly-CSharp.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Console">
+      <HintPath>./bin/Managed/Facepunch.Console.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Network">
+      <HintPath>./bin/Managed/Facepunch.Network.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Rcon">
+      <HintPath>./bin/Managed/Facepunch.Rcon.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.Steamworks">
+      <HintPath>./bin/Managed/Facepunch.Steamworks.Posix.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.System">
+      <HintPath>./bin/Managed/Facepunch.System.dll</HintPath>
+    </Reference>
+	  <Reference Include="Facepunch.UnityEngine">
+      <HintPath>./bin/Managed/Facepunch.UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Oxide.Core">
+      <HintPath>./bin/Managed/Oxide.Core.dll</HintPath>
+    </Reference>
+	  <Reference Include="Oxide.CSharp">
+      <HintPath>./bin/Managed/Oxide.CSharp.dll</HintPath>
+    </Reference>
+	  <Reference Include="Oxide.References">
+      <HintPath>./bin/Managed/Oxide.References.dll</HintPath>
+    </Reference>
+	  <Reference Include="Oxide.Rust">
+      <HintPath>./bin/Managed/Oxide.Rust.dll</HintPath>
+    </Reference>
+	  <Reference Include="Oxide.Unity">
+      <HintPath>./bin/Managed/Oxide.Unity.dll</HintPath>
+    </Reference>
+    <Reference Include="Rust.Platform">
+      <HintPath>./bin/Managed/Rust.Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Rust.Platform.Common">
+      <HintPath>./bin/Managed/Rust.Platform.Common.dll</HintPath>
+    </Reference>
+	  <Reference Include="Rust.Platform.Steam">
+      <HintPath>./bin/Managed/Rust.Platform.Steam.dll</HintPath>
+    </Reference>
+	  <Reference Include="UnityEngine">
+      <HintPath>./bin/Managed/UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

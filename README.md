@@ -28,14 +28,17 @@ Make sure your Docker daemon is allocated enough RAM to properly start up the se
 
 ## Enabling code completion
 
+This requires you to open the project solution in Visual Studio.
+
 ``` bash
 # if you haven't already ran docker-compose up, run the container
 docker-compose up -d
 
 # copy the dlls into your project directory
-docker cp local-rust-server:/steamcmd/rust/RustDedicated_Data/Managed/ ./.bin/
+docker cp local-rust-server:/steamcmd/rust/RustDedicated_Data/Managed/ ./bin/
 
-# for visual studio, add the dlls as references
+# if you are missing references to dlls you would like to use, go to
+# the .csproj file and update what is missing from the bin/
 ```
 
 ## Running tests locally against a server
