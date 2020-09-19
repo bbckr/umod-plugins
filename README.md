@@ -1,5 +1,5 @@
-![](https://cdn.buymeacoffee.com/buttons/v2/default-red.png)  
-[Like what you see? Buy me a Beer!](https://www.buymeacoffee.com/bckr)
+#### Like what you see? Buy me a Beer!
+[![buy_me_a_beer](https://raw.githubusercontent.com/bbckr/assets/master/buymeabear.PNG)](https://www.buymeacoffee.com/bckr)
 
 # uMod Plugins for Rust
 
