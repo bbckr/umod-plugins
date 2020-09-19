@@ -1,6 +1,11 @@
+#### Like what you see? Buy me a Beer!
+[![buy_me_a_beer](https://raw.githubusercontent.com/bbckr/assets/master/buymeabear.PNG)](https://www.buymeacoffee.com/bckr)
+
 # uMod Plugins for Rust
 
 A collection of [uMod](https://umod.org/) plugins for running on a modded [PlayRust](https://rust.facepunch.com/) dedicated server.
+
+A guide is also included on how to run and test the plugins locally.
 
 # Local Development
 
