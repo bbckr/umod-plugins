@@ -5,7 +5,7 @@ using Steamworks;
 
 namespace Oxide.Plugins
 {
-    [Info("StreamerFriendly", "bbckr", "0.1.0")]
+    [Info("StreamerFriendly", "bbckr", "0.2.0")]
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : RustPlugin
     {
@@ -28,12 +28,17 @@ namespace Oxide.Plugins
 
         void OnUserDisconnected(IPlayer player)
         {
-
+            anonymizer.Remove(player);
         }
 
         void Unload()
         {
-
+            // Deanonymize player info
+            var activeBasePlayers = BasePlayer.activePlayerList;
+            for (int i = 0; i < activeBasePlayers.Count; i++)
+            {
+                anonymizer.Deanonymize(activeBasePlayers[i].IPlayer);
+            }
         }
 
         private class Anonymizer
@@ -43,14 +48,25 @@ namespace Oxide.Plugins
 
             public void Anonymize(IPlayer player)
             {
-                var serverPlayer = new ServerPlayer(player);
+                ServerPlayer serverPlayer;
+                if (!anonymizedPlayers.TryGetValue(player.Id, out serverPlayer))
+                {
+                    serverPlayer = new ServerPlayer(player);
+                }
+
                 SteamServer.UpdatePlayer(serverPlayer.steamId, DEFAULT_ANONYMIZED_NAME, 0);
                 anonymizedPlayers.Add(player.Id, serverPlayer);
             }
 
             public void Deanonymize(IPlayer player)
             {
+                var serverPlayer = anonymizedPlayers[player.Id];
+                SteamServer.UpdatePlayer(serverPlayer.steamId, serverPlayer.player.Name, 0);
+            }
 
+            public void Remove(IPlayer player)
+            {
+                anonymizedPlayers.Remove(player.Id);
             }
         }
 
