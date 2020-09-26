@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Oxide.Core.Libraries.Covalence;
 using Steamworks;
+using Facepunch;
+using Network.Visibility;
 
 namespace Oxide.Plugins
 {
@@ -9,10 +11,14 @@ namespace Oxide.Plugins
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : RustPlugin
     {
-        private Anonymizer anonymizer = new Anonymizer();
+        private static Anonymizer anonymizer = new Anonymizer();
+        private static RconListener rconListener = new RconListener();
 
         void Loaded()
         {
+            // Start listening to rcon
+            rconListener.Subscribe();
+
             // Anonymize player info
             var activeBasePlayers = BasePlayer.activePlayerList;
             for (int i = 0; i < activeBasePlayers.Count; i++) {
@@ -28,16 +34,45 @@ namespace Oxide.Plugins
 
         void OnUserDisconnected(IPlayer player)
         {
+            // Stop tracking player in memory
             anonymizer.Remove(player);
         }
 
         void Unload()
         {
+            // Must unsubscribe OR ELSE
+            rconListener.Unsubscribe();
+
             // Deanonymize player info
             var activeBasePlayers = BasePlayer.activePlayerList;
             for (int i = 0; i < activeBasePlayers.Count; i++)
             {
                 anonymizer.Deanonymize(activeBasePlayers[i].IPlayer);
+            }
+        }
+
+        private class RconListener
+        {
+            private Action<string, string, UnityEngine.LogType> CustomOnMessage;
+
+            public RconListener()
+            {
+                CustomOnMessage = new Action<string, string, UnityEngine.LogType>(OnMessage);
+            }
+
+            public void Subscribe()
+            {
+                Output.OnMessage += CustomOnMessage;
+            }
+
+            public void Unsubscribe()
+            {
+                Output.OnMessage -= CustomOnMessage;
+            }
+
+            private void OnMessage(string arg0, string arg1, UnityEngine.LogType arg3)
+            {
+
             }
         }
 

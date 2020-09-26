@@ -92,5 +92,8 @@
 	  <Reference Include="UnityEngine.CoreModule">
       <HintPath>./bin/Managed/UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+	  <Reference Include="UnityEngine.UIModule">
+      <HintPath>./bin/Managed/UnityEngine.UIModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
