@@ -26,6 +26,16 @@ namespace Oxide.Plugins
             anonymizer.Anonymize(player);
         }
 
+        void OnUserDisconnected(IPlayer player)
+        {
+
+        }
+
+        void Unload()
+        {
+
+        }
+
         private class Anonymizer
         {
             private const string DEFAULT_ANONYMIZED_NAME = "StreamerFriendly";
@@ -36,6 +46,11 @@ namespace Oxide.Plugins
                 var serverPlayer = new ServerPlayer(player);
                 SteamServer.UpdatePlayer(serverPlayer.steamId, DEFAULT_ANONYMIZED_NAME, 0);
                 anonymizedPlayers.Add(player.Id, serverPlayer);
+            }
+
+            public void Deanonymize(IPlayer player)
+            {
+
             }
         }
 
