@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Oxide.Core.Libraries.Covalence;
 using Steamworks;
 
@@ -8,27 +9,49 @@ namespace Oxide.Plugins
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : RustPlugin
     {
-        private const String ANONYMIZED_NAME = "StreamerFriendly";
+        private Anonymizer anonymizer = new Anonymizer();
 
         void Loaded()
         {
             // Anonymize player info
             var activeBasePlayers = BasePlayer.activePlayerList;
             for (int i = 0; i < activeBasePlayers.Count; i++) {
-                Anonymize(activeBasePlayers[i].IPlayer.Id);
+                anonymizer.Anonymize(activeBasePlayers[i].IPlayer);
             }
         }
 
         void OnUserConnected(IPlayer player)
         {
             // Anonymize player info
-            Anonymize(player.Id);
+            anonymizer.Anonymize(player);
         }
 
-        private void Anonymize(string id) {
-            var steamId = new SteamId();
-            steamId.Value = Convert.ToUInt64(id);
-            SteamServer.UpdatePlayer(steamId, ANONYMIZED_NAME, 0);
+        private class Anonymizer
+        {
+            private const string DEFAULT_ANONYMIZED_NAME = "StreamerFriendly";
+            private IDictionary<string, ServerPlayer> anonymizedPlayers = new Dictionary<string, ServerPlayer>();
+
+            public void Anonymize(IPlayer player)
+            {
+                var serverPlayer = new ServerPlayer(player);
+                SteamServer.UpdatePlayer(serverPlayer.steamId, DEFAULT_ANONYMIZED_NAME, 0);
+                anonymizedPlayers.Add(player.Id, serverPlayer);
+            }
+        }
+
+        private class ServerPlayer
+        {
+            public SteamId steamId { get; }
+            public IPlayer player { get; }
+
+            public ServerPlayer(IPlayer player)
+            {
+                this.player = player;
+
+                var steamId = new SteamId();
+                steamId.Value = Convert.ToUInt64(player.Id);
+                this.steamId = steamId;
+            }
         }
     }
 }
