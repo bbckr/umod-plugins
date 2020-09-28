@@ -7,6 +7,16 @@ A collection of [uMod](https://umod.org/) plugins for running on a modded [PlayR
 
 A guide is also included on how to run and test the plugins locally.
 
+## Included plugins
+
+- **StreamerFriendly** (0.1.0) A plugin that prevents third-party services from tracking players via Steam server queries
+
+# How to install
+
+You must have a server with uMod installed to be able to run these plugins.
+
+Simply drag and drop the files in the `./oxide/plugins/` folder in your server and they will be loaded automatically.
+
 # Local Development
 
 ## Prerequistes
