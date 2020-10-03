@@ -8,7 +8,6 @@ using WebSocketSharp.Server;
 using System.Collections.Generic;
 using WebSocketSharp.Net.WebSockets;
 using UnityEngine;
-using Oxide.Core.Libraries.Covalence;
 using System.Text.RegularExpressions;
 
 namespace Oxide.Plugins
@@ -68,7 +67,7 @@ namespace Oxide.Plugins
             internal static readonly string Generic = "Generic";
             internal static readonly string Chat = "Chat";
 
-            private static Regex PatternChat = new Regex(@"^\[(.)*\]");
+            private static Regex PatternChat = new Regex(@"^\[((chat)|(Better Chat))\]");
 
             internal static bool IsChat(string message)
             {
@@ -170,7 +169,7 @@ namespace Oxide.Plugins
                 data.RemoveAt(0);
                 var args = data.ToArray();
 
-                if (Interface.CallHook("OnRconCommand", context.UserEndPoint, command, args) != null)
+                if (Interface.CallHook("OnRconCommand", context.UserEndPoint.Address, command, args) != null)
                 {
                     return;
                 }
@@ -183,7 +182,7 @@ namespace Oxide.Plugins
 
                 if (command == CommandType.CommandSay)
                 {
-                    Interface.Oxide.LogInfo(string.Format("[{0}] {1}", context.QueryString["name"], string.Join(" ", args)));
+                    Interface.Oxide.LogInfo(string.Format("{0}: {1}", context.QueryString["name"], string.Join(" ", args)));
                     return;
                 }
 
