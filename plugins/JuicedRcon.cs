@@ -40,11 +40,11 @@ namespace Oxide.Plugins
                 return;
             }
             
-            var remoteType = RemoteType.Generic;
+            var remoteType = RemoteMessageType.Generic;
 
-            if (RemoteType.IsChat(message))
+            if (RemoteMessageType.IsChat(message))
             {
-                remoteType = RemoteType.Chat;
+                remoteType = RemoteMessageType.Chat;
             }
 
             JuicedRemoteConsole.SendMessage(new RemoteMessage
@@ -56,16 +56,20 @@ namespace Oxide.Plugins
             });
         }
 
+        #region Constants
+
         private static class CommandType
         {
             internal static readonly string CommandEcho = "echo";
             internal static readonly string CommandSay = "say";
         }
 
-        private static class RemoteType
+        private static class RemoteMessageType
         {
             internal static readonly string Generic = "Generic";
             internal static readonly string Chat = "Chat";
+
+            #region Helpers
 
             private static Regex PatternChat = new Regex(@"^\[((chat)|(Better Chat))\]");
 
@@ -73,7 +77,11 @@ namespace Oxide.Plugins
             {
                 return PatternChat.IsMatch(message);
             }
+
+            #endregion Helpers
         }
+
+        #endregion Constants
 
         private class JuicedRemoteConsole
         {
@@ -88,6 +96,8 @@ namespace Oxide.Plugins
                 port = Interface.Oxide.Config.Rcon.Port;
                 password = Interface.Oxide.Config.Rcon.Password;
             }
+
+            #region Client
 
             public void Start()
             {
@@ -130,6 +140,10 @@ namespace Oxide.Plugins
                     Interface.Oxide.LogInfo("rcon server has stopped");
                 }
             }
+
+            #endregion Client
+
+            #region MessageHandlers
 
             public static void SendMessage(RemoteMessage message)
             {
@@ -186,7 +200,7 @@ namespace Oxide.Plugins
                     return;
                 }
 
-                RemoteMessage response = RemoteMessage.CreateMessage(output, -1, RemoteType.Generic);
+                RemoteMessage response = RemoteMessage.CreateMessage(output, -1, RemoteMessageType.Generic);
 
                 if (command == CommandType.CommandEcho)
                 {
@@ -195,6 +209,9 @@ namespace Oxide.Plugins
 
                 SendMessage(context, response);
             }
+
+            #endregion MessageHandlers
+
 
             private class JuicedWebSocketBehavior : WebSocketBehavior
             {
@@ -210,11 +227,22 @@ namespace Oxide.Plugins
                     _name = "SERVER";
                 }
 
+                #region MessageHandlers
+
                 public void SendMessage(RemoteMessage message)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
                     Sessions.Broadcast(serializedMessage);
                 }
+
+                protected override void OnMessage(MessageEventArgs e)
+                {
+                    Parent?.OnMessage(e, Context);
+                }
+
+                #endregion MessageHandlers
+
+                #region EventHandlers
 
                 protected override void OnClose(CloseEventArgs e)
                 {
@@ -225,11 +253,6 @@ namespace Oxide.Plugins
                 {
                     Interface.Oxide.LogException(string.Format("rcon exception: {0}", e.Message), e.Exception);
                 }
-                
-                protected override void OnMessage(MessageEventArgs e)
-                {
-                    Parent?.OnMessage(e, Context);
-                }
 
                 protected override void OnOpen()
                 {
@@ -237,6 +260,8 @@ namespace Oxide.Plugins
                     Context.QueryString["name"] = _name;
                     Interface.Oxide.LogInfo("rcon connection {0} established", _address);
                 }
+
+                #endregion EventHandlers
             }
         }
     }
