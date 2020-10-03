@@ -1,55 +1,23 @@
-// Requires: BetterRcon
-
-using Oxide.Core.Libraries.Covalence;
-using Oxide.Core.Plugins;
-using Oxide.Core.RemoteConsole;
-using Steamworks;
 using System;
 using System.Collections.Generic;
-
-/*
- * TODO
- * 
- * - Run RCON service on additional port
- * - Pass custom anonymize handler when sending message
- * 
- */
+using Oxide.Core.Libraries.Covalence;
+using Steamworks;
 
 namespace Oxide.Plugins
 {
     [Info("StreamerFriendly", "bbckr", "0.2.0")]
-    [Description("A plugin that prevents external services from tracking players via Steam Queries and RCON.")]
+    [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : RustPlugin
     {
-        [PluginReference]
-        private Plugin BetterRcon;
-
         private Anonymizer anonymizer = new Anonymizer();
-        private BetterRcon.BetterRemoteConsole rcon;
 
         void Loaded()
         {
-            BetterRcon = (BetterRcon)Manager.GetPlugin("BetterRcon");
-
-            // Anonymize rcon messages
-            rcon = new BetterRcon.BetterRemoteConsole();
-            rcon.Start();
-
             // Anonymize player info
             var activeBasePlayers = BasePlayer.activePlayerList;
             for (int i = 0; i < activeBasePlayers.Count; i++) {
                 anonymizer.Anonymize(activeBasePlayers[i].IPlayer);
             }
-        }
-
-        object OnPlayerDeath(BasePlayer player, HitInfo info)
-        {
-            // TODO: (bckr) imitate console message
-            rcon.SendMessage(new RemoteMessage { 
-                Message = "they died",
-                Type = "Generic"
-            });
-            return null;
         }
 
         void OnUserConnected(IPlayer player)
@@ -60,18 +28,11 @@ namespace Oxide.Plugins
 
         void OnUserDisconnected(IPlayer player)
         {
-            // Stop tracking player in memory
             anonymizer.Remove(player);
         }
 
         void Unload()
         {
-            if (BetterRcon != null)
-            {
-                // Stop rcon console
-                rcon.Stop();
-            }
-
             // Deanonymize player info
             var activeBasePlayers = BasePlayer.activePlayerList;
             for (int i = 0; i < activeBasePlayers.Count; i++)
