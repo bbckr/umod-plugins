@@ -8,6 +8,8 @@ using WebSocketSharp.Server;
 using System.Collections.Generic;
 using WebSocketSharp.Net.WebSockets;
 using UnityEngine;
+using Oxide.Core.Libraries.Covalence;
+using System.Text.RegularExpressions;
 
 namespace Oxide.Plugins
 {
@@ -38,14 +40,40 @@ namespace Oxide.Plugins
             {
                 return;
             }
+            
+            var remoteType = RemoteType.Generic;
+
+            if (RemoteType.IsChat(message))
+            {
+                remoteType = RemoteType.Chat;
+            }
 
             JuicedRemoteConsole.SendMessage(new RemoteMessage
             {
                 Message = message,
                 Identifier = -1,
-                Type = "Generic",
+                Type = remoteType,
                 Stacktrace = stackTrace
             });
+        }
+
+        private static class CommandType
+        {
+            internal static readonly string CommandEcho = "echo";
+            internal static readonly string CommandSay = "say";
+        }
+
+        private static class RemoteType
+        {
+            internal static readonly string Generic = "Generic";
+            internal static readonly string Chat = "Chat";
+
+            private static Regex PatternChat = new Regex(@"^\[(.)*\]");
+
+            internal static bool IsChat(string message)
+            {
+                return PatternChat.IsMatch(message);
+            }
         }
 
         private class JuicedRemoteConsole
@@ -131,41 +159,56 @@ namespace Oxide.Plugins
 
             private void OnMessage(MessageEventArgs e, WebSocketContext context)
             {
-                RemoteMessage message = RemoteMessage.GetMessage(e.Data);
-
-                if (message == null || string.IsNullOrEmpty(message.Message))
+                RemoteMessage request = RemoteMessage.GetMessage(e.Data);
+                if (request == null || string.IsNullOrEmpty(request.Message))
                 {
                     return;
                 }
 
-                var args = new List<string>(message.Message.Split(' '));
-                var command = args[0];
-                args.RemoveAt(0);
+                var data = new List<string>(request.Message.Split(' '));
+                var command = data[0];
+                data.RemoveAt(0);
+                var args = data.ToArray();
 
-                if (Interface.CallHook("OnRconCommand", context.UserEndPoint, e.Data, args.ToArray()) != null)
+                if (Interface.CallHook("OnRconCommand", context.UserEndPoint, command, args) != null)
                 {
                     return;
                 }
 
-                var output = ConsoleSystem.Run(ConsoleSystem.Option.Server, command, args.ToArray());
+                var output = ConsoleSystem.Run(ConsoleSystem.Option.Server, command, args);
                 if (output == null)
                 {
                     return;
                 }
 
+                if (command == CommandType.CommandSay)
+                {
+                    Interface.Oxide.LogInfo(string.Format("[{0}] {1}", context.QueryString["name"], string.Join(" ", args)));
+                    return;
+                }
 
-                SendMessage(context, RemoteMessage.CreateMessage(output, -1));
+                RemoteMessage response = RemoteMessage.CreateMessage(output, -1, RemoteType.Generic);
+
+                if (command == CommandType.CommandEcho)
+                {
+                    response.Message = string.Join(" ", args);
+                }
+
+                SendMessage(context, response);
             }
 
             private class JuicedWebSocketBehavior : WebSocketBehavior
             {
                 private readonly JuicedRemoteConsole Parent;
                 private IPAddress _address;
+                private string _name;
 
                 public JuicedWebSocketBehavior(JuicedRemoteConsole parent)
                 {
                     Parent = parent;
                     IgnoreExtensions = true;
+
+                    _name = "SERVER";
                 }
 
                 public void SendMessage(RemoteMessage message)
@@ -192,6 +235,7 @@ namespace Oxide.Plugins
                 protected override void OnOpen()
                 {
                     _address = Context.UserEndPoint.Address;
+                    Context.QueryString["name"] = _name;
                     Interface.Oxide.LogInfo("rcon connection {0} established", _address);
                 }
             }
