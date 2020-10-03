@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -8,15 +9,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Getenv(key string, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+
+	return defaultValue
+}
+
+const (
+	anonymizedName = "StreamerFriendly"
+)
+
 var (
-	// CONNECT_IP is the client connect ip for the server
-	CONNECT_IP      = os.Getenv("CONNECT_IP")
-	ANONYMIZED_NAME = "StreamerFriendly"
+	serverHost = Getenv("SERVER_HOST", "127.0.0.1")
+	serverPort = Getenv("SERVER_PORT", "28015")
+	serverIP   = fmt.Sprintf("%s:%s", serverHost, serverPort)
 )
 
 // Test_StreamerFriendly is expected to be ran against a populated server with the plugin loaded
 func Test_StreamerFriendly(t *testing.T) {
-	client, err := a2s.NewClient(CONNECT_IP)
+	client, err := a2s.NewClient(serverIP)
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +46,7 @@ func Test_StreamerFriendly(t *testing.T) {
 		}
 
 		for _, player := range playerInfo.Players {
-			assert.Equal(t, ANONYMIZED_NAME, player.Name)
+			assert.Equal(t, anonymizedName, player.Name)
 		}
 	})
 }
