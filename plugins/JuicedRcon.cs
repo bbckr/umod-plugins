@@ -8,19 +8,19 @@ using WebSocketSharp.Server;
 
 namespace Oxide.Plugins
 {
-    [Info("BetterRcon", "bbckr", "0.1.0")]
+    [Info("JuicedRcon", "bbckr", "0.1.0")]
     [Description("A plugin for better, custom RCON experience.")]
-    class BetterRcon : CovalencePlugin
+    class JuicedRcon : CovalencePlugin
     {
-        public class BetterRemoteConsole
+        public class JuicedRemoteConsole
         {
             private WebSocketServer server;
-            private BetterWebSocketBehavior behavior;
+            private JuicedWebSocketBehavior behavior;
 
             private readonly int port;
             private readonly string password;
 
-            public BetterRemoteConsole()
+            public JuicedRemoteConsole()
             {
                 port = Interface.Oxide.Config.Rcon.Port;
                 password = Interface.Oxide.Config.Rcon.Password;
@@ -42,7 +42,7 @@ namespace Oxide.Plugins
                 try
                 {
                     server = new WebSocketServer(port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
-                    server.AddWebSocketService(string.Format("/{0}", password), () => behavior = new BetterWebSocketBehavior(this));
+                    server.AddWebSocketService(string.Format("/{0}", password), () => behavior = new JuicedWebSocketBehavior(this));
 
                     server.Start();
                 }
@@ -78,12 +78,12 @@ namespace Oxide.Plugins
                 server.WebSocketServices.Broadcast(e.Data);
             }
 
-            private class BetterWebSocketBehavior : WebSocketBehavior
+            private class JuicedWebSocketBehavior : WebSocketBehavior
             {
-                private readonly BetterRemoteConsole Parent;
+                private readonly JuicedRemoteConsole Parent;
                 private IPAddress _address;
 
-                public BetterWebSocketBehavior(BetterRemoteConsole parent)
+                public JuicedWebSocketBehavior(JuicedRemoteConsole parent)
                 {
                     Parent = parent;
                     IgnoreExtensions = true;

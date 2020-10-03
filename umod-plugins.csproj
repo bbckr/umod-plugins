@@ -8,9 +8,6 @@
 	  <Reference Include="Assembly-CSharp">
       <HintPath>./bin/Managed/Assembly-CSharp.dll</HintPath>
     </Reference>
-	  <Reference Include="Facepunch.Console">
-      <HintPath>./bin/Managed/Facepunch.Console.dll</HintPath>
-    </Reference>
 	  <Reference Include="Facepunch.GoogleSheets">
       <HintPath>./bin/Managed/Facepunch.GoogleSheets.dll</HintPath>
     </Reference>
@@ -95,5 +92,8 @@
 	  <Reference Include="UnityEngine.UIModule">
       <HintPath>./bin/Managed/UnityEngine.UIModule.dll</HintPath>
     </Reference>
+	  <Reference Include="Facepunch.Console">
+	    <HintPath>./bin/Managed/Facepunch.Console.dll</HintPath>
+	  </Reference>
   </ItemGroup>
 </Project>
