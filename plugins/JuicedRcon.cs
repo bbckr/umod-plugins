@@ -2,7 +2,6 @@
 using Oxide.Core;
 using Oxide.Core.RemoteConsole;
 using System;
-using System.Net;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 using System.Collections.Generic;
@@ -28,6 +27,13 @@ namespace Oxide.Plugins
 
         void Loaded()
         {
+            if (!config.Enabled)
+            {
+                Log(LogType.Log, "rcon server is not enabled: skipping start");
+                return;
+            }
+
+            // handler for all log messages received in Oxide
             Application.logMessageReceived += HandleLog;
 
             rcon = new JuicedRemoteConsole(config);
@@ -91,6 +97,9 @@ namespace Oxide.Plugins
 
         #region Configuration
 
+        /// <summary>
+        /// JuicedConfig is the plugin configuration
+        /// </summary>
         private class JuicedConfig
         {
             public bool Enabled { get; set; } = true;
@@ -111,13 +120,37 @@ namespace Oxide.Plugins
 
             public class Profile
             {
+                /// <summary>
+                /// DisplayName is used when broadcasting messages to chat
+                /// </summary>
                 public string DisplayName { get; set; } = "Unnamed";
+
+                /// <summary>
+                /// Enabled is whether the RCON server should enable a service for the profile
+                /// </summary>
                 public bool Enabled { get; set; } = false;
+
+                /// <summary>
+                /// Password is the password used to connect to the RCON server as the profile
+                /// </summary>
                 public string Password { get; set; } = "";
+
+                /// <summary>
+                /// FullPermissions is whether the profile has access to all RCON commands
+                /// </summary>
                 public bool FullPermissions { get; set; } = false;
+
+                /// <summary>
+                /// Permissions are the allowed permissions for the profile, ignored if FullPermissions is set
+                /// </summary>
                 public string[] Permissions { get; set; } = new string[]{};
 
-                public bool HasPermission(string permission)
+                /// <summary>
+                /// HasPermissions checks if a profile has access to the given command
+                /// </summary>
+                /// <param name="command"></param>
+                /// <returns></returns>
+                public bool HasPermission(string command)
                 {
                     if (FullPermissions)
                     {
@@ -127,13 +160,17 @@ namespace Oxide.Plugins
                     return Array.Exists(Permissions, v => {
                         if (v.EndsWith("*"))
                         {
-                            return permission.StartsWith(v.Trim('*'));
+                            return command.StartsWith(v.Trim('*'));
                         }
 
-                        return permission.Equals(v);
+                        return command.Equals(v);
                     });
                 }
 
+                /// <summary>
+                /// CreateRootProfile is the profile for the root service with all permissions
+                /// </summary>
+                /// <returns></returns>
                 public static Profile CreateRootProfile()
                 {
                     return new Profile()
@@ -147,6 +184,9 @@ namespace Oxide.Plugins
             }
         }
 
+        /// <summary>
+        /// LoadConfig loads the config from file, if missing it loads and saves the default config
+        /// </summary>
         protected override void LoadConfig()
         {
             base.LoadConfig();
@@ -160,17 +200,22 @@ namespace Oxide.Plugins
                 if (config == null)
                 {
                     LoadDefaultConfig();
+                    SaveConfig();
                 }
             }
-
-            SaveConfig();
         }
 
+        /// <summary>
+        /// LoadDefaultConfig initializes the default config for the plugin
+        /// </summary>
         protected override void LoadDefaultConfig()
         {
             config = new JuicedConfig();
         }
 
+        /// <summary>
+        /// SaveConfig saves the config to a file in 'oxide/config/'
+        /// </summary>
         protected override void SaveConfig()
         {
             Config.WriteObject(config);
@@ -180,19 +225,33 @@ namespace Oxide.Plugins
 
         #region Constants
 
+        /// <summary>
+        /// CommandType contains the various command types for RCON commands
+        /// </summary>
         private static class CommandType
         {
             public static readonly string CommandEcho = "echo";
             public static readonly string CommandSay = "say";
         }
 
+        /// <summary>
+        /// RemoteMessageType contains the various message types for RCON messages
+        /// </summary>
         private static class RemoteMessageType
         {
             public static readonly string Generic = "Generic";
             public static readonly string Chat = "Chat";
 
+            /// <summary>
+            /// PatternChat matches generic chat messages or Better Chat prefixed chat messages
+            /// </summary>
             private static Regex PatternChat = new Regex(@"^\[((chat)|(Better Chat))\]");
 
+            /// <summary>
+            /// IsChat checks if the message is a chat message
+            /// </summary>
+            /// <param name="message"></param>
+            /// <returns></returns>
             public static bool IsChat(string message)
             {
                 return PatternChat.IsMatch(message);
@@ -201,6 +260,9 @@ namespace Oxide.Plugins
 
         #endregion Constants
 
+        /// <summary>
+        /// JuicedRemoteConsole is the custom websocket RCON server
+        /// </summary>
         private class JuicedRemoteConsole
         {
             private readonly JuicedConfig config;
@@ -221,14 +283,11 @@ namespace Oxide.Plugins
 
             #region Server
 
+            /// <summary>
+            /// Start starts the RCON server and all services
+            /// </summary>
             public void Start()
             {
-                if (!config.Enabled)
-                {
-                    Log(LogType.Log, "rcon server is not enabled: skipping start");
-                    return;
-                }
-
                 if (server != null && behavior != null)
                 {
                     Log(LogType.Log, "rcon server already started");
@@ -240,12 +299,12 @@ namespace Oxide.Plugins
                     server = new WebSocketServer(port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
 
                     // setup root profile
-                    Add(rootProfile);
+                    AddService(rootProfile);
 
                     // setup custom profiles
                     foreach (KeyValuePair<string, JuicedConfig.Profile> profile in config.Profiles)
                     {
-                        Add(profile.Value);
+                        AddService(profile.Value);
                     }
 
                     server.Start();
@@ -259,7 +318,11 @@ namespace Oxide.Plugins
                 Log(LogType.Log, $"rcon server listening on {server.Port}");
             }
 
-            public void Add(JuicedConfig.Profile profile)
+            /// <summary>
+            /// AddService adds a websocket service to the RCON server based on a profile
+            /// </summary>
+            /// <param name="profile"></param>
+            public void AddService(JuicedConfig.Profile profile)
             {
                 if (!profile.Enabled)
                 {
@@ -277,6 +340,9 @@ namespace Oxide.Plugins
                 Log(LogType.Log, $"rcon profile {profile.DisplayName} is enabled");
             }
 
+            /// <summary>
+            /// Stop stops the RCON server
+            /// </summary>
             public void Stop()
             {
                 if (server != null)
@@ -294,9 +360,17 @@ namespace Oxide.Plugins
 
             #region MessageHandlers
 
+            /// <summary>
+            /// OnMessage handles all executed RCON requests from connected sessions
+            /// </summary>
+            /// <param name="e"></param>
+            /// <param name="context"></param>
+            /// <param name="profile"></param>
             private void OnMessage(MessageEventArgs e, WebSocketContext context, JuicedConfig.Profile profile)
             {
                 RemoteMessage request = RemoteMessage.GetMessage(e.Data);
+
+                // ignore empty requests
                 if (request == null || string.IsNullOrEmpty(request.Message))
                 {
                     return;
@@ -318,28 +392,37 @@ namespace Oxide.Plugins
                     return;
                 }
 
+                // run command and capture output
                 var output = ConsoleSystem.Run(ConsoleSystem.Option.Server, command, args);
                 if (output == null)
                 {
                     return;
                 }
 
+                // handle "say"
                 if (command == CommandType.CommandSay)
                 {
+                    // broadcast to all sessions
                     Interface.Oxide.LogInfo(string.Format($"{profile.DisplayName}: {string.Join(" ", args)}"));
                     return;
                 }
 
                 RemoteMessage response = RemoteMessage.CreateMessage(output, -1, RemoteMessageType.Generic);
 
+                // handle "echo"
                 if (command == CommandType.CommandEcho)
                 {
                     response.Message = string.Join(" ", args);
                 }
 
+                // broadcast to session
                 SendMessage(context, response);
             }
 
+            /// <summary>
+            /// SendMessage broadcasts to all active RCON sessions
+            /// </summary>
+            /// <param name="message"></param>
             public static void SendMessage(RemoteMessage message)
             {
                 if (message != null && server != null && server.IsListening && behavior != null)
@@ -348,6 +431,11 @@ namespace Oxide.Plugins
                 }
             }
 
+            /// <summary>
+            /// SendMessage broadcasts to all active RCON sessions
+            /// </summary>
+            /// <param name="message"></param>
+            /// <param name="identifier"></param>
             public void SendMessage(string message, int identifier)
             {
                 if (!string.IsNullOrEmpty(message) && server != null && server.IsListening && behavior != null)
@@ -356,6 +444,12 @@ namespace Oxide.Plugins
                 }
             }
 
+            /// <summary>
+            /// SendMessage broadcasts to a specific RCON session
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="message"></param>
+            /// <param name="identifier"></param>
             public void SendMessage(WebSocketContext context, string message, int identifier)
             {
                 if (!string.IsNullOrEmpty(message) && server != null && server.IsListening && behavior != null)
@@ -365,6 +459,11 @@ namespace Oxide.Plugins
                 }
             }
 
+            /// <summary>
+            /// SendMessage broadcasts to a specific RCON session
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="message"></param>
             public void SendMessage(WebSocketContext context, RemoteMessage message)
             {
                 if (message != null && server != null && server.IsListening && behavior != null)
@@ -376,13 +475,13 @@ namespace Oxide.Plugins
 
             #endregion MessageHandlers
 
-
+            /// <summary>
+            /// JuicedWebSocketBehavior is the behavior for the websocket service
+            /// </summary>
             private class JuicedWebSocketBehavior : WebSocketBehavior
             {
                 private readonly JuicedRemoteConsole parent;
                 private readonly JuicedConfig.Profile profile;
-
-                private IPAddress _address;
 
                 public JuicedWebSocketBehavior(JuicedRemoteConsole parent, JuicedConfig.Profile profile)
                 {
@@ -394,12 +493,20 @@ namespace Oxide.Plugins
 
                 #region MessageHandlers
 
+                /// <summary>
+                /// SendMessage broadcasts to all active RCON sessions
+                /// </summary>
+                /// <param name="message"></param>
                 public void SendMessage(RemoteMessage message)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
                     Sessions.Broadcast(serializedMessage);
                 }
 
+                /// <summary>
+                /// OnMessage triggers the RCON server message handler when a session sends a request
+                /// </summary>
+                /// <param name="e"></param>
                 protected override void OnMessage(MessageEventArgs e)
                 {
                     parent?.OnMessage(e, Context, profile);
@@ -409,20 +516,32 @@ namespace Oxide.Plugins
 
                 #region EventHandlers
 
+
+                /// <summary>
+                /// OnClose triggers when an RCON session is closed
+                /// </summary>
+                /// <param name="e"></param>
                 protected override void OnClose(CloseEventArgs e)
                 {
-                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] closed", profile.DisplayName, _address);
+                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] closed", profile.DisplayName, Context.UserEndPoint.Address);
                 }
 
+                /// <summary>
+                /// OnError triggers when an RCON session has an error
+                /// </summary>
+                /// <param name="e"></param>
                 protected override void OnError(ErrorEventArgs e)
                 {
                     JuicedRcon.Log(LogType.Log, string.Format("rcon exception: {0}", e.Message), e.Exception);
                 }
 
+
+                /// <summary>
+                /// OnOpen triggers when a new RCON session is established
+                /// </summary>
                 protected override void OnOpen()
                 {
-                    _address = Context.UserEndPoint.Address;
-                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] established", profile.DisplayName, _address);
+                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] established", profile.DisplayName, Context.UserEndPoint.Address);
                 }
 
                 #endregion EventHandlers
