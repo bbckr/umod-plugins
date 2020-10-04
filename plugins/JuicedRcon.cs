@@ -93,14 +93,7 @@ namespace Oxide.Plugins
 
         private class JuicedConfig
         {
-            public WebRconConfig WebRcon { get; set; } = new WebRconConfig();
-
-            public class WebRconConfig
-            {
-                public bool Enabled { get; set; } = true;
-                public int Port { get; set; } = 28016;
-                public string Password { get; set; } = Interface.Oxide.Config.Rcon.Password;
-            }
+            public bool Enabled { get; set; } = true;
         }
 
         protected override void LoadConfig()
@@ -178,7 +171,7 @@ namespace Oxide.Plugins
 
             public void Start()
             {
-                if (!config.WebRcon.Enabled)
+                if (!config.Enabled)
                 {
                     Log(LogType.Log, "rcon server is not enabled: skipping start");
                     return;
