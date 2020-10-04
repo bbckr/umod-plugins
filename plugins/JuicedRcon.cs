@@ -331,7 +331,14 @@ namespace Oxide.Plugins
                     DisplayName = "Moderator",
                     AllowedCommands = new List<string>
                     {
-                        "say"
+                        "say",
+                        "kick",
+                        "ban",
+                        "unban",
+                        "playerlist",
+                        "skipqueue",
+                        "teleport",
+                        "status"
                     }
                 });
             }
