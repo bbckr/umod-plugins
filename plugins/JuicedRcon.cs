@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace Oxide.Plugins
 {
-    [Info("JuicedRcon", "bbckr", "0.1.0")]
+    [Info("JuicedRcon", "bbckr", "1.0.0")]
     [Description("A plugin for better, custom RCON experience.")]
     class JuicedRcon : CovalencePlugin
     {
@@ -94,6 +94,14 @@ namespace Oxide.Plugins
         private class JuicedConfig
         {
             public bool Enabled { get; set; } = true;
+            public Dictionary<string, Profile> Profiles { get; set; } = new Dictionary<string, Profile>();
+
+            public class Profile
+            {
+                public bool Enabled { get; set; } = false;
+                public string Password { get; set; } = "";
+                public string[] Whitelist { get; set; } = new string[]{};
+            }
         }
 
         protected override void LoadConfig()
