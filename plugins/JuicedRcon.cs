@@ -13,7 +13,7 @@ using System.Net;
 
 namespace Oxide.Plugins
 {
-    [Info("JuicedRcon", "bbckr", "1.1.0")]
+    [Info("JuicedRcon", "bbckr", "2.1.0")]
     [Description("A plugin for better, custom RCON experience.")]
     class JuicedRcon : CovalencePlugin
     {
@@ -177,7 +177,7 @@ namespace Oxide.Plugins
                 Profiles.Add("Moderator", new Profile
                 {
                     DisplayName = "Moderator",
-                    Permissions = new string[]
+                    AllowedCommands = new string[]
                     {
                         "say"
                     }
@@ -202,34 +202,34 @@ namespace Oxide.Plugins
                 public string Password { get; set; } = "";
 
                 /// <summary>
-                /// FullPermissions is whether the profile has access to all RCON commands
+                /// FullAccess is whether the profile has access to all RCON commands
                 /// </summary>
-                public bool FullPermissions { get; set; } = false;
+                public bool FullAccess { get; set; } = false;
 
                 /// <summary>
-                /// Permissions are the allowed permissions for the profile, ignored if FullPermissions is set
+                /// AllowedCommands are the whitelisted commands for the profile, ignored if FullAccess is set
                 /// </summary>
-                public string[] Permissions { get; set; } = new string[]{};
+                public string[] AllowedCommands { get; set; } = new string[]{};
 
                 /// <summary>
                 /// HasPermissions checks if a profile has access to the given command
                 /// </summary>
                 /// <param name="command"></param>
                 /// <returns></returns>
-                public bool HasPermission(string command)
+                public bool HasAccess(string command)
                 {
-                    if (FullPermissions)
+                    if (FullAccess)
                     {
                         return true;
                     }
 
-                    return Array.Exists(Permissions, v => {
-                        if (v.EndsWith("*"))
+                    return Array.Exists(AllowedCommands, c => {
+                        if (c.EndsWith("*"))
                         {
-                            return command.StartsWith(v.Trim('*'));
+                            return command.StartsWith(c.Trim('*'));
                         }
 
-                        return command.Equals(v);
+                        return command.Equals(c);
                     });
                 }
 
@@ -244,7 +244,7 @@ namespace Oxide.Plugins
                         DisplayName = "Root",
                         Enabled = true,
                         Password = Interface.Oxide.Config.Rcon.Password,
-                        FullPermissions = true
+                        FullAccess = true
                     };
                 }
             }
@@ -449,7 +449,7 @@ namespace Oxide.Plugins
                 data.RemoveAt(0);
                 var args = data.ToArray();
 
-                if (!profile.HasPermission(command))
+                if (!profile.HasAccess(command))
                 {
                     SendMessage(context, "You do not have permission to run the command", -1);
                     return;
