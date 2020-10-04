@@ -157,7 +157,7 @@ namespace Oxide.Plugins
             }
             finally
             {
-                if (config != null)
+                if (config == null)
                 {
                     LoadDefaultConfig();
                 }

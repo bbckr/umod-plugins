@@ -5,6 +5,7 @@ services:
     image: didstopia/rust-server:latest
     container_name: local-rust-server
     volumes:
+      - ./config/:/steamcmd/rust/oxide/config/
       - ./plugins/:/steamcmd/rust/oxide/plugins/
       - rust_data:/steamcmd/rust/
     ports:
