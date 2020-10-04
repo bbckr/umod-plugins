@@ -4,3 +4,4 @@ obj/
 *.js
 *.json
 node_modules/
+config/
