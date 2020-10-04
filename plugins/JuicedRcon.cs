@@ -55,7 +55,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="command"></param>
         /// <param name="args"></param>
-        [Command("juicedrcon.enable")]
+        [Command("juicedrcon.enable"), Permission("juicedrcon.admin")]
         private void EnableCommand(IPlayer player, string command, string[] args)
         {
             if (config.Enabled)
@@ -75,7 +75,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="command"></param>
         /// <param name="args"></param>
-        [Command("juicedrcon.disable")]
+        [Command("juicedrcon.disable"), Permission("juicedrcon.admin")]
         private void DisableCommand(IPlayer player, string command, string[] args)
         {
             if (!config.Enabled)
@@ -85,6 +85,89 @@ namespace Oxide.Plugins
 
             config.Enabled = false;
             Disable();
+
+            SaveConfig();
+        }
+
+        /// <summary>
+        /// ProfileCommand manages RCON server profiles
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
+        [Command("juicedrcon.profile"), Permission("juicedrcon.admin")]
+        private void ProfileCommand(IPlayer player, string command, string[] args)
+        {
+            if (args.Length < 2)
+            {
+                return;
+            }
+
+            JuicedConfig.Profile profile;
+            config.Profiles.TryGetValue(args[0], out profile);
+            if (profile == null)
+            {
+                Log(LogType.Error, $"rcon profile {args[0]} does not exist");
+                return;
+            }
+
+            switch (args[1])
+            {
+                case "enable":
+                    if (profile.Enabled)
+                    {
+                        Log(LogType.Error, $"rcon profile {profile.DisplayName} is already enabled");
+                        return;
+                    }
+
+                    profile.Enabled = true;
+                    if (!rcon.TryAddWebSocketService(profile))
+                    {
+                        return;
+                    }
+
+                    break;
+
+                case "disable":
+                    if (!profile.Enabled || string.IsNullOrEmpty(profile.Password))
+                    {
+                        Log(LogType.Error, $"rcon profile {profile.DisplayName} is already disabled");
+                        return;
+                    }
+
+                    rcon.TryRemoveWebSocketService(profile);
+                    profile.Enabled = false;
+                    break;
+
+                case "set":
+                    if (args.Length < 4)
+                    {
+                        Log(LogType.Error, "invalid use of command");
+                        return;
+                    }
+
+                    switch (args[2])
+                    {
+                        case "password":
+                            rcon.TryRemoveWebSocketService(profile);
+                            profile.Password = args[3];
+                            rcon.TryAddWebSocketService(profile);
+                            break;
+
+                        case "displayname":
+                            profile.DisplayName = args[3];
+                            break;
+
+                        default:
+                            Log(LogType.Error, "invalid use of command");
+                            return;
+                    }
+                    break;
+
+                default:
+                    Log(LogType.Error, "invalid use of command");
+                    return;
+            }
 
             SaveConfig();
         }
@@ -380,12 +463,12 @@ namespace Oxide.Plugins
                     server = new WebSocketServer(port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
 
                     // setup root profile
-                    AddWebSocketService(rootProfile);
+                    TryAddWebSocketService(rootProfile);
 
                     // setup custom profiles
                     foreach (KeyValuePair<string, JuicedConfig.Profile> profile in config.Profiles)
                     {
-                        AddWebSocketService(profile.Value);
+                        TryAddWebSocketService(profile.Value);
                     }
 
                     server.Start();
@@ -400,25 +483,45 @@ namespace Oxide.Plugins
             }
 
             /// <summary>
-            /// AddWebSocketService adds a service to the RCON server based on a profile
+            /// TryAddWebSocketService tries to add a service to the RCON server based on a profile
             /// </summary>
             /// <param name="profile"></param>
-            public void AddWebSocketService(JuicedConfig.Profile profile)
+            /// <returns></returns>
+            public bool TryAddWebSocketService(JuicedConfig.Profile profile)
             {
                 if (!profile.Enabled)
                 {
-                    Log(LogType.Log, $"rcon profile {profile.DisplayName} is not enabled: skipping start");
-                    return;
+                    return false;
                 }
 
                 if (string.IsNullOrEmpty(profile.Password))
                 {
                     Log(LogType.Error, $"rcon profile {profile.DisplayName} failed to start: it is recommended a password is set");
-                    return;
+                    return false;
                 }
 
                 server.AddWebSocketService($"/{profile.Password}", () => behavior = new JuicedWebSocketBehavior(this, profile));
                 Log(LogType.Log, $"rcon profile {profile.DisplayName} is enabled");
+
+                return true;
+            }
+
+            /// <summary>
+            /// TryRemoveWebSocketService tries to remove a service from the RCON server based on a profile
+            /// </summary>
+            /// <param name="profile"></param>
+            /// <returns></returns>
+            public bool TryRemoveWebSocketService(JuicedConfig.Profile profile)
+            {
+                if(!profile.Enabled || string.IsNullOrEmpty(profile.Password))
+                {
+                    return false;
+                }
+
+                server.RemoveWebSocketService($"/{profile.Password}");
+                Log(LogType.Log, $"rcon profile {profile.DisplayName} is disabled");
+
+                return true;
             }
 
             /// <summary>
