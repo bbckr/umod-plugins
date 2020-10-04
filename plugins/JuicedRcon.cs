@@ -16,13 +16,14 @@ namespace Oxide.Plugins
     [Description("A plugin for better, custom RCON experience.")]
     class JuicedRcon : CovalencePlugin
     {
+        private JuicedConfig config;
         private static JuicedRemoteConsole rcon;
 
         void Loaded()
         {
             Application.logMessageReceived += HandleLog;
 
-            rcon = new JuicedRemoteConsole();
+            rcon = new JuicedRemoteConsole(config);
             rcon.Start();
         }
 
@@ -32,6 +33,8 @@ namespace Oxide.Plugins
 
             rcon.Stop();
         }
+
+        #region Helpers
 
         private static void HandleLog(string message, string stackTrace, LogType type)
         {
@@ -56,29 +59,72 @@ namespace Oxide.Plugins
             });
         }
 
+        #endregion Helpers
+
+        #region Configuration
+
+        private class JuicedConfig
+        {
+            public WebRconConfig WebRcon { get; set; } = new WebRconConfig();
+
+            public class WebRconConfig
+            {
+                public bool Enabled { get; set; } = true;
+                public int Port { get; set; } = 28028;
+                public string Password { get; set; } = Interface.Oxide.Config.Rcon.Password;
+            }
+        }
+
+        protected override void LoadConfig()
+        {
+            base.LoadConfig();
+
+            try
+            {
+                config = Config.ReadObject<JuicedConfig>();
+            }
+            finally
+            {
+                if (config != null)
+                {
+                    LoadDefaultConfig();
+                }
+            }
+
+            SaveConfig();
+        }
+
+        protected override void LoadDefaultConfig()
+        {
+            config = new JuicedConfig();
+        }
+
+        protected override void SaveConfig()
+        {
+            Config.WriteObject(config);
+        }
+
+        #endregion Configuration
+
         #region Constants
 
         private static class CommandType
         {
-            internal static readonly string CommandEcho = "echo";
-            internal static readonly string CommandSay = "say";
+            public static readonly string CommandEcho = "echo";
+            public static readonly string CommandSay = "say";
         }
 
         private static class RemoteMessageType
         {
-            internal static readonly string Generic = "Generic";
-            internal static readonly string Chat = "Chat";
-
-            #region Helpers
+            public static readonly string Generic = "Generic";
+            public static readonly string Chat = "Chat";
 
             private static Regex PatternChat = new Regex(@"^\[((chat)|(Better Chat))\]");
 
-            internal static bool IsChat(string message)
+            public static bool IsChat(string message)
             {
                 return PatternChat.IsMatch(message);
             }
-
-            #endregion Helpers
         }
 
         #endregion Constants
@@ -88,13 +134,11 @@ namespace Oxide.Plugins
             private static WebSocketServer server;
             private static JuicedWebSocketBehavior behavior;
 
-            private readonly int port;
-            private readonly string password;
+            private JuicedConfig config;
 
-            public JuicedRemoteConsole()
+            public JuicedRemoteConsole(JuicedConfig config)
             {
-                port = Interface.Oxide.Config.Rcon.Port;
-                password = Interface.Oxide.Config.Rcon.Password;
+                this.config = config;
             }
 
             #region Client
@@ -107,21 +151,22 @@ namespace Oxide.Plugins
                     return;
                 }
 
-                if (string.IsNullOrEmpty(password))
+                if (string.IsNullOrEmpty(config?.WebRcon?.Password))
                 {
-                    Interface.Oxide.LogWarning("rcon server is unprotected: it is recommended a password is set");
+                    Interface.Oxide.LogError("rcon server failed to start: it is recommended a password is set");
+                    return;
                 }
 
                 try
                 {
-                    server = new WebSocketServer(port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
-                    server.AddWebSocketService(string.Format("/{0}", password), () => behavior = new JuicedWebSocketBehavior(this));
+                    server = new WebSocketServer(config.WebRcon.Port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
+                    server.AddWebSocketService(string.Format("/{0}", config.WebRcon.Password), () => behavior = new JuicedWebSocketBehavior(this));
 
                     server.Start();
                 }
                 catch (Exception exception)
                 {
-                    Interface.Oxide.LogException("rcon server failed to initialize {0}", exception);
+                    Interface.Oxide.LogException("rcon server failed to start: {0}", exception);
                     return;
                 }
 
@@ -223,7 +268,6 @@ namespace Oxide.Plugins
                 {
                     Parent = parent;
                     IgnoreExtensions = true;
-
                     _name = "SERVER";
                 }
 
