@@ -93,6 +93,10 @@ namespace Oxide.Plugins
 
         #region Helpers
 
+
+        /// <summary>
+        /// Enable is the logic for enabling the plugin
+        /// </summary>
         private void Enable()
         {
             // handler for all log messages received in Oxide
@@ -102,6 +106,9 @@ namespace Oxide.Plugins
             rcon.Start();
         }
 
+        /// <summary>
+        /// Disable is the logic for disabling the plugin
+        /// </summary>
         private void Disable()
         {
             Application.logMessageReceived -= HandleLog;
@@ -115,6 +122,12 @@ namespace Oxide.Plugins
             rcon = null;
         }
 
+        /// <summary>
+        /// HandleLog is the handler for all received log messages
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="stackTrace"></param>
+        /// <param name="type"></param>
         private static void HandleLog(string message, string stackTrace, LogType type)
         {
             if (string.IsNullOrEmpty(message))
