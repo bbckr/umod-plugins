@@ -19,6 +19,13 @@ namespace Oxide.Plugins
         private JuicedConfig config;
         private static JuicedRemoteConsole rcon;
 
+        private static InfoAttribute info;
+
+        void Init()
+        {
+            info = (InfoAttribute)Attribute.GetCustomAttribute(GetType(), typeof(InfoAttribute));
+        }
+
         void Loaded()
         {
             Application.logMessageReceived += HandleLog;
@@ -59,6 +66,27 @@ namespace Oxide.Plugins
             });
         }
 
+        private static void Log(LogType type, string format, params object[] args)
+        {
+            var message = string.Format("[{0}] {1}", info.Title, format);
+
+            switch(type)
+            {
+                case LogType.Warning:
+                    Interface.Oxide.LogWarning(message, args);
+                    break;
+                case LogType.Error:
+                    Interface.Oxide.LogError(message, args);
+                    break;
+                case LogType.Exception:
+                    Interface.Oxide.LogError(message, args);
+                    break;
+                default:
+                    Interface.Oxide.LogInfo(message, args);
+                    break;
+            }
+        }
+
         #endregion Helpers
 
         #region Configuration
@@ -70,7 +98,7 @@ namespace Oxide.Plugins
             public class WebRconConfig
             {
                 public bool Enabled { get; set; } = true;
-                public int Port { get; set; } = 28028;
+                public int Port { get; set; } = 28016;
                 public string Password { get; set; } = Interface.Oxide.Config.Rcon.Password;
             }
         }
@@ -131,46 +159,57 @@ namespace Oxide.Plugins
 
         private class JuicedRemoteConsole
         {
+            private readonly JuicedConfig config;
+
+            private readonly string password;
+            private readonly int port;
+
             private static WebSocketServer server;
             private static JuicedWebSocketBehavior behavior;
-
-            private JuicedConfig config;
 
             public JuicedRemoteConsole(JuicedConfig config)
             {
                 this.config = config;
+                password = Interface.Oxide.Config.Rcon.Password;
+                port = Interface.Oxide.Config.Rcon.Port;
             }
 
             #region Client
 
             public void Start()
             {
-                if (server != null && behavior != null)
+                if (!config.WebRcon.Enabled)
                 {
-                    Interface.Oxide.LogWarning("rcon server already started");
+                    Log(LogType.Log, "rcon server is not enabled: skipping start");
                     return;
                 }
 
-                if (string.IsNullOrEmpty(config?.WebRcon?.Password))
+                if (server != null && behavior != null)
                 {
-                    Interface.Oxide.LogError("rcon server failed to start: it is recommended a password is set");
+                    Log(LogType.Log, "rcon server already started");
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(password))
+                {
+                    Log(LogType.Error, "rcon server failed to start: it is recommended a password is set");
                     return;
                 }
 
                 try
                 {
-                    server = new WebSocketServer(config.WebRcon.Port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
-                    server.AddWebSocketService(string.Format("/{0}", config.WebRcon.Password), () => behavior = new JuicedWebSocketBehavior(this));
+                    server = new WebSocketServer(port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
+                    server.AddWebSocketService(string.Format("/{0}", password), () => behavior = new JuicedWebSocketBehavior(this));
 
                     server.Start();
                 }
                 catch (Exception exception)
                 {
-                    Interface.Oxide.LogException("rcon server failed to start: {0}", exception);
+                    Log(LogType.Exception, "rcon server failed to start: {0}", exception);
                     return;
                 }
 
-                Interface.Oxide.LogInfo("rcon server listening on {0}", server.Port);
+                Log(LogType.Log, "rcon server listening on {0}", server.Port);
             }
 
             public void Stop()
@@ -182,7 +221,7 @@ namespace Oxide.Plugins
                     server = null;
                     behavior = null;
 
-                    Interface.Oxide.LogInfo("rcon server has stopped");
+                    JuicedRcon.Log(LogType.Log, "rcon server has stopped");
                 }
             }
 
@@ -260,13 +299,14 @@ namespace Oxide.Plugins
 
             private class JuicedWebSocketBehavior : WebSocketBehavior
             {
-                private readonly JuicedRemoteConsole Parent;
+                private readonly JuicedRemoteConsole parent;
+
                 private IPAddress _address;
                 private string _name;
 
                 public JuicedWebSocketBehavior(JuicedRemoteConsole parent)
                 {
-                    Parent = parent;
+                    this.parent = parent;
                     IgnoreExtensions = true;
                     _name = "SERVER";
                 }
@@ -281,7 +321,7 @@ namespace Oxide.Plugins
 
                 protected override void OnMessage(MessageEventArgs e)
                 {
-                    Parent?.OnMessage(e, Context);
+                    parent?.OnMessage(e, Context);
                 }
 
                 #endregion MessageHandlers
@@ -290,19 +330,19 @@ namespace Oxide.Plugins
 
                 protected override void OnClose(CloseEventArgs e)
                 {
-                    Interface.Oxide.LogInfo("rcon connection {0} closed", _address);
+                    JuicedRcon.Log(LogType.Log, "rcon connection {0} closed", _address);
                 }
 
                 protected override void OnError(ErrorEventArgs e)
                 {
-                    Interface.Oxide.LogException(string.Format("rcon exception: {0}", e.Message), e.Exception);
+                    JuicedRcon.Log(LogType.Log, string.Format("rcon exception: {0}", e.Message), e.Exception);
                 }
 
                 protected override void OnOpen()
                 {
                     _address = Context.UserEndPoint.Address;
                     Context.QueryString["name"] = _name;
-                    Interface.Oxide.LogInfo("rcon connection {0} established", _address);
+                    JuicedRcon.Log(LogType.Log, "rcon connection {0} established", _address);
                 }
 
                 #endregion EventHandlers
