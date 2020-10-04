@@ -13,7 +13,7 @@ using System.Net;
 
 namespace Oxide.Plugins
 {
-    [Info("JuicedRcon", "bbckr", "2.1.0")]
+    [Info("JuicedRcon", "bbckr", "1.0.0")]
     [Description("A plugin for better, custom RCON experience.")]
     class JuicedRcon : CovalencePlugin
     {
