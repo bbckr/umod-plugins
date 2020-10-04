@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using WebSocketSharp.Net.WebSockets;
 using UnityEngine;
 using System.Text.RegularExpressions;
+using Oxide.Core.Libraries.Covalence;
+using System.Net;
 
 namespace Oxide.Plugins
 {
-    [Info("JuicedRcon", "bbckr", "1.0.0")]
+    [Info("JuicedRcon", "bbckr", "1.1.0")]
     [Description("A plugin for better, custom RCON experience.")]
     class JuicedRcon : CovalencePlugin
     {
@@ -19,6 +21,8 @@ namespace Oxide.Plugins
         private static JuicedRemoteConsole rcon;
 
         private static InfoAttribute info;
+
+        #region Hooks
 
         void Init()
         {
@@ -33,21 +37,83 @@ namespace Oxide.Plugins
                 return;
             }
 
-            // handler for all log messages received in Oxide
-            Application.logMessageReceived += HandleLog;
-
-            rcon = new JuicedRemoteConsole(config);
-            rcon.Start();
+            Enable();
         }
 
         void Unload()
         {
-            Application.logMessageReceived -= HandleLog;
-
-            rcon.Stop();
+            Disable();
         }
 
+        #endregion Hooks
+
+        #region Commands
+
+        /// <summary>
+        /// EnableCommand enables the plugin and starts the RCON server
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
+        [Command("juicedrcon.enable")]
+        private void EnableCommand(IPlayer player, string command, string[] args)
+        {
+            if (config.Enabled)
+            {
+                return;
+            }
+
+            config.Enabled = true;
+            Enable();
+
+            SaveConfig();
+        }
+
+        /// <summary>
+        /// DisableCommand disables the plugin and stops the RCON server
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
+        [Command("juicedrcon.disable")]
+        private void DisableCommand(IPlayer player, string command, string[] args)
+        {
+            if (!config.Enabled)
+            {
+                return;
+            }
+
+            config.Enabled = false;
+            Disable();
+
+            SaveConfig();
+        }
+
+        #endregion Commands
+
         #region Helpers
+
+        private void Enable()
+        {
+            // handler for all log messages received in Oxide
+            Application.logMessageReceived += HandleLog;
+
+            rcon = new JuicedRemoteConsole(config);   
+            rcon.Start();
+        }
+
+        private void Disable()
+        {
+            Application.logMessageReceived -= HandleLog;
+
+            if (rcon == null)
+            {
+                return;
+            }
+
+            rcon.Stop();
+            rcon = null;
+        }
 
         private static void HandleLog(string message, string stackTrace, LogType type)
         {
@@ -260,10 +326,12 @@ namespace Oxide.Plugins
 
         #endregion Constants
 
+        #region WebSocket
+
         /// <summary>
         /// JuicedRemoteConsole is the custom websocket RCON server
         /// </summary>
-        private class JuicedRemoteConsole
+        private class JuicedRemoteConsole : WebSocketServer
         {
             private readonly JuicedConfig config;
             private readonly JuicedConfig.Profile rootProfile;
@@ -286,7 +354,7 @@ namespace Oxide.Plugins
             /// <summary>
             /// Start starts the RCON server and all services
             /// </summary>
-            public void Start()
+            public new void Start()
             {
                 if (server != null && behavior != null)
                 {
@@ -299,12 +367,12 @@ namespace Oxide.Plugins
                     server = new WebSocketServer(port) { WaitTime = TimeSpan.FromSeconds(5.0), ReuseAddress = true };
 
                     // setup root profile
-                    AddService(rootProfile);
+                    AddWebSocketService(rootProfile);
 
                     // setup custom profiles
                     foreach (KeyValuePair<string, JuicedConfig.Profile> profile in config.Profiles)
                     {
-                        AddService(profile.Value);
+                        AddWebSocketService(profile.Value);
                     }
 
                     server.Start();
@@ -319,10 +387,10 @@ namespace Oxide.Plugins
             }
 
             /// <summary>
-            /// AddService adds a websocket service to the RCON server based on a profile
+            /// AddWebSocketService adds a service to the RCON server based on a profile
             /// </summary>
             /// <param name="profile"></param>
-            public void AddService(JuicedConfig.Profile profile)
+            public void AddWebSocketService(JuicedConfig.Profile profile)
             {
                 if (!profile.Enabled)
                 {
@@ -343,7 +411,7 @@ namespace Oxide.Plugins
             /// <summary>
             /// Stop stops the RCON server
             /// </summary>
-            public void Stop()
+            public new void Stop()
             {
                 if (server != null)
                 {
@@ -475,6 +543,8 @@ namespace Oxide.Plugins
 
             #endregion MessageHandlers
 
+            #region Service
+
             /// <summary>
             /// JuicedWebSocketBehavior is the behavior for the websocket service
             /// </summary>
@@ -482,6 +552,7 @@ namespace Oxide.Plugins
             {
                 private readonly JuicedRemoteConsole parent;
                 private readonly JuicedConfig.Profile profile;
+                private IPAddress _address;
 
                 public JuicedWebSocketBehavior(JuicedRemoteConsole parent, JuicedConfig.Profile profile)
                 {
@@ -523,7 +594,7 @@ namespace Oxide.Plugins
                 /// <param name="e"></param>
                 protected override void OnClose(CloseEventArgs e)
                 {
-                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] closed", profile.DisplayName, Context.UserEndPoint.Address);
+                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] closed", profile.DisplayName, _address);
                 }
 
                 /// <summary>
@@ -541,11 +612,14 @@ namespace Oxide.Plugins
                 /// </summary>
                 protected override void OnOpen()
                 {
-                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] established", profile.DisplayName, Context.UserEndPoint.Address);
+                    _address = Context.UserEndPoint.Address;
+                    JuicedRcon.Log(LogType.Log, "rcon connection {0}[{1}] established", profile.DisplayName, _address);
                 }
 
                 #endregion EventHandlers
             }
         }
+        #endregion Service
     }
+    #endregion WebSocket
 }
