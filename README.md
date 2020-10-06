@@ -9,14 +9,10 @@ A guide is also included on how to run and test the plugins locally.
 
 ## Included plugins
 
-- **StreamerFriendly** (1.0.0) A plugin that prevents third-party services from tracking players via Steam server queries
-- **JuicedRcon** (1.0.0) A plugin that allows you to customize your RCON experience
+For more detailed documentation on how to install and use the plugins, check out the `docs` folder or click the plugin name below:
 
-# How to install
-
-You must have a server with uMod installed to be able to run these plugins.
-
-Simply drag and drop the files in the `./oxide/plugins/` folder in your server and they will be loaded automatically.
+- **[StreamerFriendly](docs/StreamerFriendly.md)** (1.0.0) A plugin that prevents third-party services from tracking players via Steam server queries
+- **[JuicedRcon](docs/JuicedRcon.md)** (1.0.0) A plugin for better, custom RCON experience
 
 # Local Development
 

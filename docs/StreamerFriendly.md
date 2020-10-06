@@ -10,6 +10,11 @@ This plugin works by anonymizing the player names to the same name so that exter
 
 This is particularly useful for preventing players from abusing those services to stalk, harass, or stream-snipe other players on the server.
 
+## Upcoming features
+
+- Randomzing player names
+- Configuring the plugin through commands
+
 ## Console commands
 
 None
@@ -17,8 +22,3 @@ None
 ## Chat commands
 
 None
-
-## Upcoming features
-
-- Randomzing player names
-- Configuring the plugin through commands
