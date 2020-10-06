@@ -9,7 +9,8 @@ A guide is also included on how to run and test the plugins locally.
 
 ## Included plugins
 
-- **StreamerFriendly** (0.1.0) A plugin that prevents third-party services from tracking players via Steam server queries
+- **StreamerFriendly** (1.0.0) A plugin that prevents third-party services from tracking players via Steam server queries
+- **JuicedRcon** (1.0.0) A plugin that allows you to customize your RCON experience
 
 # How to install
 
