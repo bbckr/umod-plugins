@@ -281,7 +281,7 @@ namespace Oxide.Plugins
                 remoteType = RemoteMessageType.Chat;
             }
 
-            JuicedRemoteConsole.SendMessage(new RemoteMessage
+            JuicedRemoteConsole.JuicedBroadcaster.Broadcast(new RemoteMessage
             {
                 Message = message,
                 Identifier = -1,
@@ -371,6 +371,11 @@ namespace Oxide.Plugins
                 public List<string> AllowedCommands { get; set; } = new List<string>();
 
                 /// <summary>
+                /// Anonymized is whether the broadcasted messages should anonymize player names
+                /// </summary>
+                public bool Anonymized { get; set; } = false;
+
+                /// <summary>
                 /// HasPermissions checks if a profile has access to the given command
                 /// </summary>
                 /// <param name="command"></param>
@@ -454,7 +459,7 @@ namespace Oxide.Plugins
         /// <summary>
         /// CommandType contains the various command types for RCON commands
         /// </summary>
-        private static class CommandType
+        private class CommandType
         {
             public static readonly string CommandEcho = "echo";
             public static readonly string CommandSay = "say";
@@ -629,7 +634,7 @@ namespace Oxide.Plugins
 
                 if (!profile.HasAccess(command))
                 {
-                    SendMessage(context, "You do not have permission to run the command", -1);
+                    JuicedBroadcaster.Broadcast(context, "You do not have permission to run the command", -1);
                     return;
                 }
 
@@ -662,66 +667,60 @@ namespace Oxide.Plugins
                 }
 
                 // broadcast to session
-                SendMessage(context, response);
-            }
-
-            /// <summary>
-            /// SendMessage broadcasts to all active RCON sessions
-            /// </summary>
-            /// <param name="message"></param>
-            public static void SendMessage(RemoteMessage message)
-            {
-                if (message != null && server != null && server.IsListening)
-                {
-                    var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
-                    server.WebSocketServices.Broadcast(serializedMessage);
-                }
-            }
-
-            /// <summary>
-            /// SendMessage broadcasts to all active RCON sessions
-            /// </summary>
-            /// <param name="message"></param>
-            /// <param name="identifier"></param>
-            public void SendMessage(string message, int identifier)
-            {
-                if (!string.IsNullOrEmpty(message) && server != null && server.IsListening)
-                {
-                    var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
-                    server.WebSocketServices.Broadcast(serializedMessage);
-                }
-            }
-
-            /// <summary>
-            /// SendMessage broadcasts to a specific RCON session
-            /// </summary>
-            /// <param name="context"></param>
-            /// <param name="message"></param>
-            /// <param name="identifier"></param>
-            public void SendMessage(WebSocketContext context, string message, int identifier)
-            {
-                if (!string.IsNullOrEmpty(message) && server != null && server.IsListening)
-                {
-                    var serializedMessage = JsonConvert.SerializeObject(RemoteMessage.CreateMessage(message, identifier), Formatting.Indented);
-                    context?.WebSocket?.Send(serializedMessage);
-                }
-            }
-
-            /// <summary>
-            /// SendMessage broadcasts to a specific RCON session
-            /// </summary>
-            /// <param name="context"></param>
-            /// <param name="message"></param>
-            public void SendMessage(WebSocketContext context, RemoteMessage message)
-            {
-                if (message != null && server != null && server.IsListening)
-                {
-                    var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
-                    context?.WebSocket?.Send(serializedMessage);
-                }
+                JuicedBroadcaster.Broadcast(context, response);
             }
 
             #endregion MessageHandlers
+
+            #region Broadcasting
+
+            public static class JuicedBroadcaster
+            {
+                /// <summary>
+                /// Broadcast broadcasts to all active RCON sessions
+                /// </summary>
+                /// <param name="message"></param>
+                public static void Broadcast(RemoteMessage message)
+                {
+                    Broadcast(null, message);
+                }
+
+                /// <summary>
+                /// Broadcast broadcasts to a specific RCON session
+                /// </summary>
+                /// <param name="context"></param>
+                /// <param name="message"></param>
+                /// <param name="identifier"></param>
+                public static void Broadcast(WebSocketContext context, string message, int identifier)
+                {
+                    Broadcast(context, RemoteMessage.CreateMessage(message, identifier));
+                }
+
+                /// <summary>
+                /// Broadcast broadcasts to a specific RCON session
+                /// </summary>
+                /// <param name="context"></param>
+                /// <param name="message"></param>
+                public static void Broadcast(WebSocketContext context, RemoteMessage message)
+                {
+                    if (server == null || !server.IsListening)
+                    {
+                        return;
+                    }
+
+                    var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
+
+                    if (context != null)
+                    {
+                        context?.WebSocket?.Send(serializedMessage);
+                        return;
+                    }
+
+                    server.WebSocketServices.Broadcast(serializedMessage);
+                }
+            }
+
+            #endregion Broadcasting
 
             #region Service
 
