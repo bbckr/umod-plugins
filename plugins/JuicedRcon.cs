@@ -17,7 +17,7 @@ namespace Oxide.Plugins
     [Description("A plugin for better, custom RCON experience.")]
     class JuicedRcon : CovalencePlugin
     {
-        private JuicedConfig config;
+        private JuicedRconConfig config;
         private static JuicedRemoteConsole rcon;
 
         private static InfoAttribute info;
@@ -113,7 +113,7 @@ namespace Oxide.Plugins
                         return;
                     }
 
-                    config.Profiles.Add(args[1], new JuicedConfig.Profile
+                    config.Profiles.Add(args[1], new JuicedRconConfig.Profile
                     {
                         DisplayName = args[1]
                     });
@@ -123,7 +123,7 @@ namespace Oxide.Plugins
                     return;
             }
 
-            JuicedConfig.Profile profile;
+            JuicedRconConfig.Profile profile;
             config.Profiles.TryGetValue(args[0], out profile);
             if (profile == null)
             {
@@ -316,14 +316,14 @@ namespace Oxide.Plugins
         #region Configuration
 
         /// <summary>
-        /// JuicedConfig is the plugin configuration
+        /// JuicedRconConfig is the plugin configuration
         /// </summary>
-        private class JuicedConfig
+        private class JuicedRconConfig
         {
             public bool Enabled { get; set; } = true;
             public Dictionary<string, Profile> Profiles { get; set; } = new Dictionary<string, Profile>();
 
-            public JuicedConfig()
+            public JuicedRconConfig()
             {
                 // default profile for moderator
                 Profiles.Add("Moderator", new Profile
@@ -419,7 +419,7 @@ namespace Oxide.Plugins
 
             try
             {
-                config = Config.ReadObject<JuicedConfig>();
+                config = Config.ReadObject<JuicedRconConfig>();
             }
             finally
             {
@@ -436,7 +436,7 @@ namespace Oxide.Plugins
         /// </summary>
         protected override void LoadDefaultConfig()
         {
-            config = new JuicedConfig();
+            config = new JuicedRconConfig();
         }
 
         /// <summary>
@@ -493,17 +493,17 @@ namespace Oxide.Plugins
         /// </summary>
         private class JuicedRemoteConsole : WebSocketServer
         {
-            private readonly JuicedConfig config;
-            private readonly JuicedConfig.Profile rootProfile;
+            private readonly JuicedRconConfig config;
+            private readonly JuicedRconConfig.Profile rootProfile;
 
             private readonly int port;
 
             private static WebSocketServer server;
 
-            public JuicedRemoteConsole(JuicedConfig config)
+            public JuicedRemoteConsole(JuicedRconConfig config)
             {
                 this.config = config;
-                rootProfile = JuicedConfig.Profile.CreateRootProfile();
+                rootProfile = JuicedRconConfig.Profile.CreateRootProfile();
 
                 port = Interface.Oxide.Config.Rcon.Port;
             }
@@ -529,7 +529,7 @@ namespace Oxide.Plugins
                     TryAddWebSocketService(rootProfile);
 
                     // setup custom profiles
-                    foreach (KeyValuePair<string, JuicedConfig.Profile> profile in config.Profiles)
+                    foreach (KeyValuePair<string, JuicedRconConfig.Profile> profile in config.Profiles)
                     {
                         TryAddWebSocketService(profile.Value);
                     }
@@ -550,7 +550,7 @@ namespace Oxide.Plugins
             /// </summary>
             /// <param name="profile"></param>
             /// <returns></returns>
-            public bool TryAddWebSocketService(JuicedConfig.Profile profile)
+            public bool TryAddWebSocketService(JuicedRconConfig.Profile profile)
             {
                 if (!profile.Enabled)
                 {
@@ -574,7 +574,7 @@ namespace Oxide.Plugins
             /// </summary>
             /// <param name="profile"></param>
             /// <returns></returns>
-            public bool TryRemoveWebSocketService(JuicedConfig.Profile profile)
+            public bool TryRemoveWebSocketService(JuicedRconConfig.Profile profile)
             {
                 if(!profile.Enabled || string.IsNullOrEmpty(profile.Password))
                 {
@@ -612,7 +612,7 @@ namespace Oxide.Plugins
             /// <param name="e"></param>
             /// <param name="context"></param>
             /// <param name="profile"></param>
-            private void OnMessage(MessageEventArgs e, WebSocketContext context, JuicedConfig.Profile profile)
+            private void OnMessage(MessageEventArgs e, WebSocketContext context, JuicedRconConfig.Profile profile)
             {
                 RemoteMessage request = RemoteMessage.GetMessage(e.Data);
 
@@ -731,10 +731,10 @@ namespace Oxide.Plugins
             private class JuicedWebSocketBehavior : WebSocketBehavior
             {
                 private readonly JuicedRemoteConsole parent;
-                private readonly JuicedConfig.Profile profile;
+                private readonly JuicedRconConfig.Profile profile;
                 private IPAddress _address;
 
-                public JuicedWebSocketBehavior(JuicedRemoteConsole parent, JuicedConfig.Profile profile)
+                public JuicedWebSocketBehavior(JuicedRemoteConsole parent, JuicedRconConfig.Profile profile)
                 {
                     this.parent = parent;
                     this.profile = profile;
