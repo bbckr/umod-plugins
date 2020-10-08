@@ -281,7 +281,7 @@ namespace Oxide.Plugins
                 remoteType = RemoteMessageType.Chat;
             }
 
-            JuicedRemoteConsole.JuicedBroadcaster.Broadcast(new RemoteMessage
+            JuicedRemoteConsole.Broadcast(new RemoteMessage
             {
                 Message = message,
                 Identifier = -1,
@@ -322,6 +322,7 @@ namespace Oxide.Plugins
         {
             public bool Enabled { get; set; } = true;
             public Dictionary<string, Profile> Profiles { get; set; } = new Dictionary<string, Profile>();
+            public bool AnonymizedProfileEnabled { get; set; } = false;
 
             public JuicedRconConfig()
             {
@@ -634,7 +635,7 @@ namespace Oxide.Plugins
 
                 if (!profile.HasAccess(command))
                 {
-                    JuicedBroadcaster.Broadcast(context, "You do not have permission to run the command", -1);
+                    Broadcast(context, "You do not have permission to run the command", -1);
                     return;
                 }
 
@@ -667,60 +668,53 @@ namespace Oxide.Plugins
                 }
 
                 // broadcast to session
-                JuicedBroadcaster.Broadcast(context, response);
+                Broadcast(context, response);
             }
 
-            #endregion MessageHandlers
-
-            #region Broadcasting
-
-            public static class JuicedBroadcaster
+            /// <summary>
+            /// Broadcast broadcasts to all active RCON sessions
+            /// </summary>
+            /// <param name="message"></param>
+            public static void Broadcast(RemoteMessage message)
             {
-                /// <summary>
-                /// Broadcast broadcasts to all active RCON sessions
-                /// </summary>
-                /// <param name="message"></param>
-                public static void Broadcast(RemoteMessage message)
-                {
-                    Broadcast(null, message);
-                }
-
-                /// <summary>
-                /// Broadcast broadcasts to a specific RCON session
-                /// </summary>
-                /// <param name="context"></param>
-                /// <param name="message"></param>
-                /// <param name="identifier"></param>
-                public static void Broadcast(WebSocketContext context, string message, int identifier)
-                {
-                    Broadcast(context, RemoteMessage.CreateMessage(message, identifier));
-                }
-
-                /// <summary>
-                /// Broadcast broadcasts to a specific RCON session
-                /// </summary>
-                /// <param name="context"></param>
-                /// <param name="message"></param>
-                public static void Broadcast(WebSocketContext context, RemoteMessage message)
-                {
-                    if (server == null || !server.IsListening)
-                    {
-                        return;
-                    }
-
-                    var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
-
-                    if (context != null)
-                    {
-                        context?.WebSocket?.Send(serializedMessage);
-                        return;
-                    }
-
-                    server.WebSocketServices.Broadcast(serializedMessage);
-                }
+                Broadcast(null, message);
             }
 
-            #endregion Broadcasting
+            /// <summary>
+            /// Broadcast broadcasts to a specific RCON session
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="message"></param>
+            /// <param name="identifier"></param>
+            public static void Broadcast(WebSocketContext context, string message, int identifier)
+            {
+                Broadcast(context, RemoteMessage.CreateMessage(message, identifier));
+            }
+
+            /// <summary>
+            /// Broadcast broadcasts to a specific RCON session
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="message"></param>
+            public static void Broadcast(WebSocketContext context, RemoteMessage message)
+            {
+                if (server == null || !server.IsListening)
+                {
+                    return;
+                }
+
+                var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
+
+                if (context != null)
+                {
+                    context?.WebSocket?.Send(serializedMessage);
+                    return;
+                }
+
+                server.WebSocketServices.Broadcast(serializedMessage);
+            }
+            
+            #endregion MessageHandlers
 
             #region Service
 
