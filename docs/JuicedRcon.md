@@ -19,7 +19,7 @@ Once it is running, connect to RCON as you normally would. If you set up custom 
 - Set display names for messaging across rcon sessions
 
 ### Improved broadcasting
-- Using `say` appears realtime across all RCON sessions with display names (in-game, these will still appear as `SERVER`)
+- Using `say` appears realtime across all RCON sessions (in-game, these are the `SERVER` broadcasts)
 
 ### Talk privately across all RCON sessions
 - Use `juicedrcon.say` to broadcast a message to all active RCON sessions (does not display in game)
