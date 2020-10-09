@@ -7,13 +7,12 @@ using WebSocketSharp.Server;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text.RegularExpressions;
-using Oxide.Core.Libraries.Covalence;
 using System.Net;
 using System.Linq;
 
 namespace Oxide.Plugins
 {
-    [Info("JuicedRcon", "bbckr", "1.0.0")]
+    [Info("JuicedRcon", "bbckr", "1.1.0")]
     [Description("A plugin for better, custom RCON experience.")]
     class JuicedRcon : CovalencePlugin
     {
