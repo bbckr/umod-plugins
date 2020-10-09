@@ -146,6 +146,10 @@ namespace Oxide.Plugins
 
             switch (args[1])
             {
+                case "get":
+                    Log(LogType.Log, profile.ToString());
+                    return;
+
                 case "delete":
                     rcon.TryRemoveWebSocketService(profile);
                     config.Profiles.Remove(args[0]);
@@ -411,6 +415,11 @@ namespace Oxide.Plugins
 
                         return command.Equals(c);
                     });
+                }
+
+                public override string ToString()
+                {
+                    return $"DisplayName: {DisplayName}, enabled: {Enabled}, commands: [{string.Join(", ", AllowedCommands)}]";
                 }
 
                 /// <summary>
