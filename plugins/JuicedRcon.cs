@@ -88,25 +88,6 @@ namespace Oxide.Plugins
         }
 
         /// <summary>
-        /// SayCommand 
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private string SayCommand(string[] args)
-        {
-            if (config.Enabled)
-            {
-                return $"plugin {info.Title} is already enabled";
-            }
-
-            config.Enabled = true;
-            Enable();
-
-            SaveConfig();
-            return $"plugin {info.Title} is enabled";
-        }
-
-        /// <summary>
         /// ProfileCommand manages existing RCON server profiles
         /// </summary>
         /// <param name="args"></param>
@@ -669,6 +650,14 @@ namespace Oxide.Plugins
 
                 if (Interface.CallHook("OnRconCommand", behavior?.Context?.UserEndPoint.Address, command, args) != null)
                 {
+                    return;
+                }
+
+                // handle rcon say
+                if (command == CommandType.CommandJuicedRconSay)
+                {
+                    // broadcast to all sessions
+                    Interface.Oxide.LogInfo(string.Format($"{behavior.Profile.DisplayName}: {string.Join(" ", args)}"));
                     return;
                 }
 
