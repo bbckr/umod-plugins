@@ -31,7 +31,6 @@ Once it is running, connect to RCON as you normally would. If you set up custom 
 
 ## Console commands
 
-### Permission: `juicedrcon.admin`
 #### Plugin
 - `juicedrcon.enable` Enables the plugin and starts the RCON server (by default the plugin is enabled)
 - `juicedrcon.disable` Disables the plugin and stops the RCON server
