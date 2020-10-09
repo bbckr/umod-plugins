@@ -88,6 +88,25 @@ namespace Oxide.Plugins
         }
 
         /// <summary>
+        /// SayCommand 
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        private string SayCommand(string[] args)
+        {
+            if (config.Enabled)
+            {
+                return $"plugin {info.Title} is already enabled";
+            }
+
+            config.Enabled = true;
+            Enable();
+
+            SaveConfig();
+            return $"plugin {info.Title} is enabled";
+        }
+
+        /// <summary>
         /// ProfileCommand manages existing RCON server profiles
         /// </summary>
         /// <param name="args"></param>
@@ -142,7 +161,7 @@ namespace Oxide.Plugins
                     rcon.TryRemoveWebSocketService(profile);
                     config.Profiles.Remove(args[0]);
                     SaveConfig();
-                    return $"Deleted rcon profile {args[1]}";
+                    return $"Successfully deleted rcon profile";
 
                 case "enable":
                     if (profile.Enabled)
@@ -153,7 +172,7 @@ namespace Oxide.Plugins
                     profile.Enabled = true;
                     rcon.TryAddWebSocketService(profile);
                     SaveConfig();
-                    return $"Enabled rcon profile {args[0]}";
+                    return $"Successfully enabled rcon profile";
 
                 case "disable":
                     if (!profile.Enabled || string.IsNullOrEmpty(profile.Password))
@@ -164,7 +183,7 @@ namespace Oxide.Plugins
                     rcon.TryRemoveWebSocketService(profile);
                     profile.Enabled = false;
                     SaveConfig();
-                    return $"Disabled rcon profile {args[0]}";
+                    return $"Successfully disabled rcon profile";
 
                 case "set":
                     if (args.Length < 4)
