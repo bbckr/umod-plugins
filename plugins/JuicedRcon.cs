@@ -9,6 +9,7 @@ using UnityEngine;
 using System.Text.RegularExpressions;
 using Oxide.Core.Libraries.Covalence;
 using System.Net;
+using System.Linq;
 
 namespace Oxide.Plugins
 {
@@ -187,6 +188,12 @@ namespace Oxide.Plugins
                     switch (args[2])
                     {
                         case "password":
+                            if (args[3] != "" && args[3] != Interface.Oxide.Config.Rcon.Password && config.Profiles.Values.FirstOrDefault(p => p.Password == args[3]) != null)
+                            {
+                                Log(LogType.Error, "invalid password");
+                                return;
+                            }
+
                             rcon.TryRemoveWebSocketService(profile);
                             profile.Password = args[3];
                             rcon.TryAddWebSocketService(profile);
