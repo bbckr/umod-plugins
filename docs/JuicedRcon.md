@@ -48,6 +48,9 @@ Once it is running, connect to RCON as you normally would. If you set up custom 
 - `juicedrcon.profile <profile name> add <command>` Grants a profile access to a command, can use wildcards (e.g. oxide.*)
 - `juicedrcon.profile <profile name> remove <command>` Revokes access to a command
 
+#### Chat
+- `juicedrcon.say <message>` Broadcast a message to all active RCON sessions (does not display in game)
+
 ## Chat commands
 
 None
