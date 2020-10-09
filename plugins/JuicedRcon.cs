@@ -413,6 +413,7 @@ namespace Oxide.Plugins
                         FullAccess = true
                     };
                 }
+
                 public string HandleMessage(string message)
                 {
                     if (Anonymized)
@@ -625,8 +626,7 @@ namespace Oxide.Plugins
             /// OnMessage handles all executed RCON requests from connected sessions
             /// </summary>
             /// <param name="e"></param>
-            /// <param name="context"></param>
-            /// <param name="profile"></param>
+            /// <param name="behavior"></param>
             private void OnMessage(MessageEventArgs e, JuicedWebSocketBehavior behavior)
             {
                 RemoteMessage request = RemoteMessage.GetMessage(e.Data);
@@ -692,7 +692,7 @@ namespace Oxide.Plugins
             /// <summary>
             /// Broadcast broadcasts to a specific RCON session
             /// </summary>
-            /// <param name="context"></param>
+            /// <param name="behavior"></param>
             /// <param name="message"></param>
             /// <param name="identifier"></param>
             public static void Broadcast(JuicedWebSocketBehavior behavior, string message, int identifier)
@@ -703,7 +703,7 @@ namespace Oxide.Plugins
             /// <summary>
             /// Broadcast broadcasts to a specific RCON session
             /// </summary>
-            /// <param name="context"></param>
+            /// <param name="behavior"></param>
             /// <param name="message"></param>
             public static void Broadcast(JuicedWebSocketBehavior behavior, RemoteMessage message)
             {
