@@ -5,7 +5,6 @@ using System;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 using System.Collections.Generic;
-using WebSocketSharp.Net.WebSockets;
 using UnityEngine;
 using System.Text.RegularExpressions;
 using Oxide.Core.Libraries.Covalence;
@@ -98,6 +97,19 @@ namespace Oxide.Plugins
         [Command("juicedrcon.profile"), Permission("juicedrcon.admin")]
         private void ProfileCommand(IPlayer player, string command, string[] args)
         {
+            if (args.Length < 1)
+            {
+                Log(LogType.Error, "invalid use of command");
+                return;
+            }
+
+            switch (args[0])
+            {
+                case "list":
+                    Log(LogType.Log, $"{string.Join(", ", config.Profiles.Keys)}");
+                    return;
+            }
+
             if (args.Length < 2)
             {
                 Log(LogType.Error, "invalid use of command");
@@ -372,11 +384,6 @@ namespace Oxide.Plugins
                 public List<string> AllowedCommands { get; set; } = new List<string>();
 
                 /// <summary>
-                /// Anonymized is whether the broadcasted messages should anonymize player names
-                /// </summary>
-                public bool Anonymized { get; set; } = false;
-
-                /// <summary>
                 /// HasPermissions checks if a profile has access to the given command
                 /// </summary>
                 /// <param name="command"></param>
@@ -412,16 +419,6 @@ namespace Oxide.Plugins
                         Password = Interface.Oxide.Config.Rcon.Password,
                         FullAccess = true
                     };
-                }
-
-                public string HandleMessage(string message)
-                {
-                    if (Anonymized)
-                    {
-                        // TODO: Anonymize message
-                        return message;
-                    }
-                    return message;
                 }
             }
         }
@@ -714,24 +711,13 @@ namespace Oxide.Plugins
 
                 var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
 
-                if (behavior != null && behavior.Profile != null)
+                if (behavior != null)
                 {
-                    behavior?.Context?.WebSocket.SendAsync(behavior.Profile.HandleMessage(serializedMessage), null);
+                    behavior?.Context?.WebSocket.SendAsync(serializedMessage, null);
                     return;
                 }
 
-                foreach (WebSocketServiceHost host in server.WebSocketServices.Hosts)
-                {
-                    foreach (JuicedWebSocketBehavior sessionBehavior in host.Sessions.Sessions)
-                    {
-                        if (sessionBehavior.Profile != null)
-                        {
-                            sessionBehavior.Context.WebSocket.SendAsync(sessionBehavior.Profile.HandleMessage(serializedMessage), null);
-                            break;
-                        }
-                        sessionBehavior.Context.WebSocket.SendAsync(serializedMessage, null);
-                    }
-                }
+                server.WebSocketServices.BroadcastAsync(serializedMessage, null);
             }
             
             #endregion MessageHandlers
