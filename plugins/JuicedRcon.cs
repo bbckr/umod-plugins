@@ -413,6 +413,15 @@ namespace Oxide.Plugins
                         FullAccess = true
                     };
                 }
+                public string HandleMessage(string message)
+                {
+                    if (Anonymized)
+                    {
+                        // TODO: Anonymize message
+                        return message;
+                    }
+                    return message;
+                }
             }
         }
 
@@ -618,7 +627,7 @@ namespace Oxide.Plugins
             /// <param name="e"></param>
             /// <param name="context"></param>
             /// <param name="profile"></param>
-            private void OnMessage(MessageEventArgs e, WebSocketContext context, JuicedRconConfig.Profile profile)
+            private void OnMessage(MessageEventArgs e, JuicedWebSocketBehavior behavior)
             {
                 RemoteMessage request = RemoteMessage.GetMessage(e.Data);
 
@@ -633,13 +642,13 @@ namespace Oxide.Plugins
                 data.RemoveAt(0);
                 var args = data.ToArray();
 
-                if (!profile.HasAccess(command))
+                if (!behavior.Profile.HasAccess(command))
                 {
-                    Broadcast(context, "You do not have permission to run the command", -1);
+                    Broadcast(behavior, "You do not have permission to run the command", -1);
                     return;
                 }
 
-                if (Interface.CallHook("OnRconCommand", context.UserEndPoint.Address, command, args) != null)
+                if (Interface.CallHook("OnRconCommand", behavior?.Context?.UserEndPoint.Address, command, args) != null)
                 {
                     return;
                 }
@@ -655,7 +664,7 @@ namespace Oxide.Plugins
                 if (command == CommandType.CommandSay)
                 {
                     // broadcast to all sessions
-                    Interface.Oxide.LogInfo(string.Format($"{profile.DisplayName}: {string.Join(" ", args)}"));
+                    Interface.Oxide.LogInfo(string.Format($"{behavior.Profile.DisplayName}: {string.Join(" ", args)}"));
                     return;
                 }
 
@@ -668,7 +677,7 @@ namespace Oxide.Plugins
                 }
 
                 // broadcast to session
-                Broadcast(context, response);
+                Broadcast(behavior, response);
             }
 
             /// <summary>
@@ -686,9 +695,9 @@ namespace Oxide.Plugins
             /// <param name="context"></param>
             /// <param name="message"></param>
             /// <param name="identifier"></param>
-            public static void Broadcast(WebSocketContext context, string message, int identifier)
+            public static void Broadcast(JuicedWebSocketBehavior behavior, string message, int identifier)
             {
-                Broadcast(context, RemoteMessage.CreateMessage(message, identifier));
+                Broadcast(behavior, RemoteMessage.CreateMessage(message, identifier));
             }
 
             /// <summary>
@@ -696,7 +705,7 @@ namespace Oxide.Plugins
             /// </summary>
             /// <param name="context"></param>
             /// <param name="message"></param>
-            public static void Broadcast(WebSocketContext context, RemoteMessage message)
+            public static void Broadcast(JuicedWebSocketBehavior behavior, RemoteMessage message)
             {
                 if (server == null || !server.IsListening)
                 {
@@ -705,13 +714,24 @@ namespace Oxide.Plugins
 
                 var serializedMessage = JsonConvert.SerializeObject(message, Formatting.Indented);
 
-                if (context != null)
+                if (behavior != null && behavior.Profile != null)
                 {
-                    context?.WebSocket?.Send(serializedMessage);
+                    behavior?.Context?.WebSocket.SendAsync(behavior.Profile.HandleMessage(serializedMessage), null);
                     return;
                 }
 
-                server.WebSocketServices.Broadcast(serializedMessage);
+                foreach (WebSocketServiceHost host in server.WebSocketServices.Hosts)
+                {
+                    foreach (JuicedWebSocketBehavior sessionBehavior in host.Sessions.Sessions)
+                    {
+                        if (sessionBehavior.Profile != null)
+                        {
+                            sessionBehavior.Context.WebSocket.SendAsync(sessionBehavior.Profile.HandleMessage(serializedMessage), null);
+                            break;
+                        }
+                        sessionBehavior.Context.WebSocket.SendAsync(serializedMessage, null);
+                    }
+                }
             }
             
             #endregion MessageHandlers
@@ -721,16 +741,17 @@ namespace Oxide.Plugins
             /// <summary>
             /// JuicedWebSocketBehavior is the behavior for the websocket service
             /// </summary>
-            private class JuicedWebSocketBehavior : WebSocketBehavior
+            public class JuicedWebSocketBehavior : WebSocketBehavior
             {
                 private readonly JuicedRemoteConsole parent;
-                private readonly JuicedRconConfig.Profile profile;
                 private IPAddress _address;
+
+                public readonly JuicedRconConfig.Profile Profile;
 
                 public JuicedWebSocketBehavior(JuicedRemoteConsole parent, JuicedRconConfig.Profile profile)
                 {
                     this.parent = parent;
-                    this.profile = profile;
+                    Profile = profile;
 
                     IgnoreExtensions = true;
                 }
@@ -743,7 +764,7 @@ namespace Oxide.Plugins
                 /// <param name="e"></param>
                 protected override void OnMessage(MessageEventArgs e)
                 {
-                    parent?.OnMessage(e, Context, profile);
+                    parent?.OnMessage(e, this);
                 }
 
                 /// <summary>
@@ -752,7 +773,7 @@ namespace Oxide.Plugins
                 /// <param name="e"></param>
                 protected override void OnClose(CloseEventArgs e)
                 {
-                    JuicedRcon.Log(LogType.Log, $"rcon connection {profile.DisplayName}[{_address}] closed");
+                    JuicedRcon.Log(LogType.Log, $"rcon connection {Profile?.DisplayName}[{_address}] closed");
                 }
 
                 /// <summary>
@@ -771,7 +792,7 @@ namespace Oxide.Plugins
                 protected override void OnOpen()
                 {
                     _address = Context.UserEndPoint.Address;
-                    JuicedRcon.Log(LogType.Log, $"rcon connection {profile.DisplayName}[{_address}] established");
+                    JuicedRcon.Log(LogType.Log, $"rcon connection {Profile?.DisplayName}[{_address}] established");
                 }
 
                 #endregion EventHandlers
