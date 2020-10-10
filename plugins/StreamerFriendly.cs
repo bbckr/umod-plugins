@@ -18,17 +18,17 @@ namespace Oxide.Plugins
         {
             if (!config.Enabled)
             {
-                Disable();
+                DisablePlugin();
                 Puts("Plugin is not enabled: skipping start");
                 return;
             }
 
-            Enable();
+            EnablePlugin();
         }
 
         void Unload()
         {
-            Disable();
+            DisablePlugin();
         }
 
         void OnUserConnected(IPlayer player)
@@ -44,9 +44,43 @@ namespace Oxide.Plugins
 
         #endregion Hooks
 
+        #region Commands
+
+        [Command("anonymize.enable"), Permission("streamerfriendly.admin")]
+        public void EnablePluginCommand(IPlayer player, string command, string[] args)
+        {
+            if (config.Enabled)
+            {
+                Puts($"Plugin is already enabled");
+            }
+
+            config.Enabled = true;
+            EnablePlugin();
+
+            SaveConfig();
+            Puts($"Plugin is enabled");
+        }
+
+        [Command("anonymize.disable"), Permission("streamerfriendly.admin")]
+        public void DisablePluginCommand(IPlayer player, string command, string[] args)
+        {
+            if (!config.Enabled)
+            {
+                Puts($"Plugin is already disabled");
+            }
+
+            config.Enabled = false;
+            DisablePlugin();
+
+            SaveConfig();
+            Puts($"Plugin is disabled");
+        }
+
+        #endregion Commands
+
         #region Helpers
 
-        private void Enable()
+        private void EnablePlugin()
         {
             if (anonymizer != null)
             {
@@ -60,7 +94,7 @@ namespace Oxide.Plugins
             Subscribe("OnUserDisconnected");
         }
 
-        private void Disable()
+        private void DisablePlugin()
         {
             if (anonymizer == null)
             {
