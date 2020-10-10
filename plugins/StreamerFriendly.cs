@@ -5,7 +5,7 @@ using Steamworks;
 
 namespace Oxide.Plugins
 {
-    [Info("StreamerFriendly", "bbckr", "2.0.0")]
+    [Info("StreamerFriendly", "bbckr", "2.0.1")]
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : CovalencePlugin
     {
@@ -16,7 +16,7 @@ namespace Oxide.Plugins
 
         void Loaded()
         {
-            {
+            if (!config.Enabled){
                 DisablePlugin();
                 Puts("Plugin is not enabled: skipping start");
                 return;
@@ -251,13 +251,12 @@ namespace Oxide.Plugins
 
             public Anonymizer(ListHashSet<BasePlayer> activePlayers, Func<string> generateRandomName)
             {
+                GenerateRandomName = generateRandomName;
                 AnonymizedPlayers = new Dictionary<string, AnonymizedPlayer>();
                 foreach (BasePlayer activePlayer in activePlayers)
                 {
                     Anonymize(activePlayer.IPlayer);
                 }
-
-                GenerateRandomName = generateRandomName;
             }
 
             public void Anonymize(IPlayer player)

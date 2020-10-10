@@ -11,7 +11,7 @@ A guide is also included on how to run and test the plugins locally.
 
 For more detailed documentation on how to install and use the plugins, check out the `docs` folder or click the plugin name below:
 
-- **[StreamerFriendly](docs/StreamerFriendly.md)** (2.0.0) A plugin that prevents third-party services from tracking players via Steam server queries
+- **[StreamerFriendly](docs/StreamerFriendly.md)** (2.0.1) A plugin that prevents third-party services from tracking players via Steam server queries
 - **[JuicedRcon](docs/JuicedRcon.md)** (1.1.0) A plugin for better, custom RCON experience
 
 # Local Development
