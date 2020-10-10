@@ -16,6 +16,8 @@ namespace Oxide.Plugins
 
         void Loaded()
         {
+            permission.RegisterPermission(PermissionType.AdminPermission, this);
+
             if (!config.Enabled)
             {
                 DisablePlugin();
@@ -46,7 +48,7 @@ namespace Oxide.Plugins
 
         #region Commands
 
-        [Command("anonymize.enable"), Permission("streamerfriendly.admin")]
+        [Command(CommandType.EnablePluginCommand), Permission("streamerfriendly.admin")]
         public void EnablePluginCommand(IPlayer player, string command, string[] args)
         {
             if (config.Enabled)
@@ -61,7 +63,7 @@ namespace Oxide.Plugins
             Puts($"Plugin is enabled");
         }
 
-        [Command("anonymize.disable"), Permission("streamerfriendly.admin")]
+        [Command(CommandType.DisablePluginCommand), Permission(PermissionType.AdminPermission)]
         public void DisablePluginCommand(IPlayer player, string command, string[] args)
         {
             if (!config.Enabled)
@@ -76,7 +78,7 @@ namespace Oxide.Plugins
             Puts($"Plugin is disabled");
         }
 
-        [Command("anonymize.random"), Permission("streamerfriendly.admin")]
+        [Command(CommandType.RandomCommand), Permission(PermissionType.AdminPermission)]
         public void RandomCommand(IPlayer player, string command, string[] args)
         {
             if (args.Length < 1)
@@ -137,6 +139,22 @@ namespace Oxide.Plugins
         }
 
         #endregion Commands
+
+        #region Constants
+
+        private static class PermissionType
+        {
+            public const string AdminPermission = "streamerfriendly.admin";
+        }
+
+        private static class CommandType
+        {
+            public const string EnablePluginCommand = "anonymize.enable";
+            public const string DisablePluginCommand = "anonymize.disable";
+            public const string RandomCommand = "anonymize.random";
+        }
+
+        #endregion Constants
 
         #region Helpers
 
