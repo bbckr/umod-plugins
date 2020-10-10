@@ -96,4 +96,7 @@
 	    <HintPath>./bin/Managed/Facepunch.Console.dll</HintPath>
 	  </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="config\" />
+  </ItemGroup>
 </Project>

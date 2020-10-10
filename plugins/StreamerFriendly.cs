@@ -5,19 +5,30 @@ using Steamworks;
 
 namespace Oxide.Plugins
 {
-    [Info("StreamerFriendly", "bbckr", "1.0.0")]
+    [Info("StreamerFriendly", "bbckr", "1.1.0")]
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : RustPlugin
     {
-        private Anonymizer anonymizer = new Anonymizer();
+        private StreamerFriendlyConfig config;
+        private Anonymizer anonymizer;
+
+        #region Hooks
 
         void Loaded()
         {
-            // Anonymize player info
-            var activeBasePlayers = BasePlayer.activePlayerList;
-            for (int i = 0; i < activeBasePlayers.Count; i++) {
-                anonymizer.Anonymize(activeBasePlayers[i].IPlayer);
+            if (!config.Enabled)
+            {
+                DisablePlugin();
+                Puts("Plugin is not enabled: skipping start");
+                return;
             }
+
+            EnablePlugin();
+        }
+
+        void Unload()
+        {
+            DisablePlugin();
         }
 
         void OnUserConnected(IPlayer player)
@@ -31,58 +42,197 @@ namespace Oxide.Plugins
             anonymizer.Remove(player);
         }
 
-        void Unload()
+        #endregion Hooks
+
+        #region Commands
+
+        [Command("anonymize.enable"), Permission("streamerfriendly.admin")]
+        public void EnablePluginCommand(IPlayer player, string command, string[] args)
         {
-            // Deanonymize player info
-            var activeBasePlayers = BasePlayer.activePlayerList;
-            for (int i = 0; i < activeBasePlayers.Count; i++)
+            if (config.Enabled)
             {
-                anonymizer.Deanonymize(activeBasePlayers[i].IPlayer);
+                Puts($"Plugin is already enabled");
+            }
+
+            config.Enabled = true;
+            EnablePlugin();
+
+            SaveConfig();
+            Puts($"Plugin is enabled");
+        }
+
+        [Command("anonymize.disable"), Permission("streamerfriendly.admin")]
+        public void DisablePluginCommand(IPlayer player, string command, string[] args)
+        {
+            if (!config.Enabled)
+            {
+                Puts($"Plugin is already disabled");
+            }
+
+            config.Enabled = false;
+            DisablePlugin();
+
+            SaveConfig();
+            Puts($"Plugin is disabled");
+        }
+
+        #endregion Commands
+
+        #region Helpers
+
+        private void EnablePlugin()
+        {
+            if (anonymizer != null)
+            {
+                return;
+            }
+
+            // Anonymize all active players
+            anonymizer = new Anonymizer(BasePlayer.activePlayerList);
+
+            Subscribe("OnUserConnected");
+            Subscribe("OnUserDisconnected");
+        }
+
+        private void DisablePlugin()
+        {
+            if (anonymizer == null)
+            {
+                return;
+            }
+
+            Unsubscribe("OnUserConnected");
+            Unsubscribe("OnUserDisconnected");
+
+            // Deanonymize all active players
+            anonymizer.Dispose();
+            anonymizer = null;
+        }
+
+        #endregion Helpers
+
+        #region Configuration
+
+        /// <summary>
+        /// StreamerFriendlyConfig is the plugin configuration
+        /// </summary>
+        private class StreamerFriendlyConfig
+        {
+            public bool Enabled { get; set; } = true;
+
+        }
+
+        /// <summary>
+        /// LoadConfig loads the config from file, if missing it loads and saves the default config
+        /// </summary>
+        protected override void LoadConfig()
+        {
+            base.LoadConfig();
+
+            try
+            {
+                config = Config.ReadObject<StreamerFriendlyConfig>();
+            }
+            finally
+            {
+                if (config == null)
+                {
+                    LoadDefaultConfig();
+                    SaveConfig();
+                }
             }
         }
 
-        private class Anonymizer
+        /// <summary>
+        /// LoadDefaultConfig initializes the default config for the plugin
+        /// </summary>
+        protected override void LoadDefaultConfig()
+        {
+            config = new StreamerFriendlyConfig();
+        }
+
+        /// <summary>
+        /// SaveConfig saves the config to a file in 'oxide/config/'
+        /// </summary>
+        protected override void SaveConfig()
+        {
+            Config.WriteObject(config);
+        }
+
+        #endregion Configuration
+
+        #region Anonymization
+
+        private class Anonymizer: IDisposable
         {
             private const string DEFAULT_ANONYMIZED_NAME = "StreamerFriendly";
-            private IDictionary<string, ServerPlayer> anonymizedPlayers = new Dictionary<string, ServerPlayer>();
+            private IDictionary<string, AnonymizedPlayer> AnonymizedPlayers;
+
+            public Anonymizer(ListHashSet<BasePlayer> activePlayers)
+            {
+                AnonymizedPlayers = new Dictionary<string, AnonymizedPlayer>();
+                foreach (BasePlayer activePlayer in activePlayers)
+                {
+                    Anonymize(activePlayer.IPlayer);
+                }
+            }
 
             public void Anonymize(IPlayer player)
             {
-                ServerPlayer serverPlayer;
-                if (!anonymizedPlayers.TryGetValue(player.Id, out serverPlayer))
+                AnonymizedPlayer anonymizedPlayer;
+                if (!AnonymizedPlayers.TryGetValue(player.Id, out anonymizedPlayer))
                 {
-                    serverPlayer = new ServerPlayer(player);
+                    anonymizedPlayer = new AnonymizedPlayer(player);
                 }
 
-                SteamServer.UpdatePlayer(serverPlayer.steamId, DEFAULT_ANONYMIZED_NAME, 0);
-                anonymizedPlayers.Add(player.Id, serverPlayer);
+                SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, DEFAULT_ANONYMIZED_NAME, 0);
+                AnonymizedPlayers.Add(player.Id, anonymizedPlayer);
             }
 
             public void Deanonymize(IPlayer player)
             {
-                var serverPlayer = anonymizedPlayers[player.Id];
-                SteamServer.UpdatePlayer(serverPlayer.steamId, serverPlayer.player.Name, 0);
+                var anonymizedPlayer = AnonymizedPlayers[player.Id];
+                SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, anonymizedPlayer.Player.Name, 0);
+            }
+
+            public void Deanonymize(string playerID)
+            {
+                var anonymizedPlayer = AnonymizedPlayers[playerID];
+                SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, anonymizedPlayer.Player.Name, 0);
+            }
+
+            public void Dispose()
+            {
+                foreach(string playerID in AnonymizedPlayers.Keys)
+                {
+                    Deanonymize(playerID);
+                }
+
+                AnonymizedPlayers = null;
             }
 
             public void Remove(IPlayer player)
             {
-                anonymizedPlayers.Remove(player.Id);
+                AnonymizedPlayers.Remove(player.Id);
             }
-        }
 
-        private class ServerPlayer
-        {
-            public SteamId steamId { get; }
-            public IPlayer player { get; }
-
-            public ServerPlayer(IPlayer player)
+            private class AnonymizedPlayer
             {
-                this.player = player;
+                public SteamId SteamID { get; }
+                public IPlayer Player { get; }
 
-                var steamId = new SteamId();
-                steamId.Value = Convert.ToUInt64(player.Id);
-                this.steamId = steamId;
+                public AnonymizedPlayer(IPlayer player)
+                {
+                    Player = player;
+
+                    SteamID = new SteamId
+                    {
+                        Value = Convert.ToUInt64(player.Id)
+                    };
+                }
             }
         }
+
+        #endregion Anonymization
     }
 }
