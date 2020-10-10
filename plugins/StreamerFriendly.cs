@@ -9,7 +9,10 @@ namespace Oxide.Plugins
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : RustPlugin
     {
+        private StreamerFriendlyConfig config;
         private Anonymizer anonymizer = new Anonymizer();
+
+        #region Hooks
 
         void Loaded()
         {
@@ -41,6 +44,60 @@ namespace Oxide.Plugins
                 anonymizer.Deanonymize(activeBasePlayers[i].IPlayer);
             }
         }
+
+        #endregion Hooks
+
+        #region Configuration
+
+        /// <summary>
+        /// StreamerFriendlyConfig is the plugin configuration
+        /// </summary>
+        private class StreamerFriendlyConfig
+        {
+            public bool Enabled { get; set; } = true;
+
+        }
+
+        /// <summary>
+        /// LoadConfig loads the config from file, if missing it loads and saves the default config
+        /// </summary>
+        protected override void LoadConfig()
+        {
+            base.LoadConfig();
+
+            try
+            {
+                config = Config.ReadObject<StreamerFriendlyConfig>();
+            }
+            finally
+            {
+                if (config == null)
+                {
+                    LoadDefaultConfig();
+                    SaveConfig();
+                }
+            }
+        }
+
+        /// <summary>
+        /// LoadDefaultConfig initializes the default config for the plugin
+        /// </summary>
+        protected override void LoadDefaultConfig()
+        {
+            config = new StreamerFriendlyConfig();
+        }
+
+        /// <summary>
+        /// SaveConfig saves the config to a file in 'oxide/config/'
+        /// </summary>
+        protected override void SaveConfig()
+        {
+            Config.WriteObject(config);
+        }
+
+        #endregion Configuration
+
+        #region Anonymization
 
         private class Anonymizer
         {
@@ -86,5 +143,7 @@ namespace Oxide.Plugins
                 }
             }
         }
+
+        #endregion Anonymization
     }
 }
