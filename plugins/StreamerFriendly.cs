@@ -5,7 +5,7 @@ using Steamworks;
 
 namespace Oxide.Plugins
 {
-    [Info("StreamerFriendly", "bbckr", "1.1.0")]
+    [Info("StreamerFriendly", "bbckr", "2.0.0")]
     [Description("A plugin that prevents external services from tracking players via Steam Queries.")]
     class StreamerFriendly : CovalencePlugin
     {
@@ -16,9 +16,6 @@ namespace Oxide.Plugins
 
         void Loaded()
         {
-            permission.RegisterPermission(PermissionType.AdminPermission, this);
-
-            if (!config.Enabled)
             {
                 DisablePlugin();
                 Puts("Plugin is not enabled: skipping start");
@@ -49,7 +46,7 @@ namespace Oxide.Plugins
         #region Commands
 
         [Command(CommandType.EnablePluginCommand), Permission("streamerfriendly.admin")]
-        public void EnablePluginCommand(IPlayer player, string command, string[] args)
+        private void EnablePluginCommand(IPlayer player, string command, string[] args)
         {
             if (config.Enabled)
             {
@@ -64,7 +61,7 @@ namespace Oxide.Plugins
         }
 
         [Command(CommandType.DisablePluginCommand), Permission(PermissionType.AdminPermission)]
-        public void DisablePluginCommand(IPlayer player, string command, string[] args)
+        private void DisablePluginCommand(IPlayer player, string command, string[] args)
         {
             if (!config.Enabled)
             {
@@ -79,21 +76,8 @@ namespace Oxide.Plugins
         }
 
         [Command(CommandType.RandomCommand), Permission(PermissionType.AdminPermission)]
-        public void RandomCommand(IPlayer player, string command, string[] args)
+        private void RandomCommand(IPlayer player, string command, string[] args)
         {
-            if (args.Length < 1)
-            {
-                Puts($"Invalid use of command");
-                return;
-            }
-
-            switch (args[0])
-            {
-                case "test":
-                    Puts(config.RandomNameConfiguration.GenerateRandomName());
-                    return;
-            }
-
             if (args.Length < 2)
             {
                 Puts($"Invalid use of command");
