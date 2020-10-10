@@ -17,7 +17,11 @@ This is particularly useful for preventing players from abusing those services t
 
 ## Console commands
 
-None
+### Permission `streamerfriendly.admin`
+
+#### Plugin
+- `anonymize.enable` Enables the plugin
+- `anonymize.disable` Disables the plugin
 
 ## Chat commands
 
