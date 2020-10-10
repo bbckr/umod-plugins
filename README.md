@@ -55,14 +55,3 @@ docker cp local-rust-server:/steamcmd/rust/RustDedicated_Data/Managed/ ./bin/
 # if you are missing references to dlls you would like to use, go to
 # the .csproj file and update what is missing from the bin/
 ```
-
-## Running tests locally against a server
-
-Run the go tests included to see if the plugin is properly loaded and functional:
-
-``` bash
-# set the connect ip of the server before running
-export CONNECT_IP=127.0.0.1:28015
-
-go test ./...
-```
