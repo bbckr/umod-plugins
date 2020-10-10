@@ -3,7 +3,7 @@
 
 # uMod Plugins for Rust
 
-A collection of [uMod](https://umod.org/) plugins for running on a modded [PlayRust](https://rust.facepunch.com/) dedicated server.
+The **Tower of Swole** collection of [uMod](https://umod.org/) plugins for running on a modded [PlayRust](https://rust.facepunch.com/) dedicated server.
 
 A guide is also included on how to run and test the plugins locally.
 
@@ -11,8 +11,12 @@ A guide is also included on how to run and test the plugins locally.
 
 For more detailed documentation on how to install and use the plugins, check out the `docs` folder or click the plugin name below:
 
-- **[StreamerFriendly](docs/StreamerFriendly.md)** (2.0.1) A plugin that prevents third-party services from tracking players via Steam server queries
-- **[JuicedRcon](docs/JuicedRcon.md)** (1.1.0) A plugin for better, custom RCON experience
+- **[StreamerFriendly](docs/StreamerFriendly.md)** (2.0.1) A plugin that prevents third-party services from tracking players via Steam server queries *(Official umod plugin page: [Streamer Friendly](https://umod.org/plugins/OeK1mVbKG4))*
+- **[JuicedRcon](docs/JuicedRcon.md)** (1.1.0) A plugin for better, custom RCON experience *(Official umod plugin page: [Juiced Rcon](https://umod.org/plugins/MGKbWeegDa))*
+
+## Need plugin support?
+
+Head over to the **Tower of Swole** discord `#plugins` channel using [this invite link](https://discord.gg/a3hJBZG) and @ masq#5845.
 
 # Local Development
 
