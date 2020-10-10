@@ -15,7 +15,8 @@ namespace Oxide.Plugins
         {
             // Anonymize player info
             var activeBasePlayers = BasePlayer.activePlayerList;
-            for (int i = 0; i < activeBasePlayers.Count; i++) {
+            for (int i = 0; i < activeBasePlayers.Count; i++)
+            {
                 anonymizer.Anonymize(activeBasePlayers[i].IPlayer);
             }
         }
@@ -44,44 +45,45 @@ namespace Oxide.Plugins
         private class Anonymizer
         {
             private const string DEFAULT_ANONYMIZED_NAME = "StreamerFriendly";
-            private IDictionary<string, ServerPlayer> anonymizedPlayers = new Dictionary<string, ServerPlayer>();
+            private IDictionary<string, AnonymizedPlayer> anonymizedPlayers = new Dictionary<string, AnonymizedPlayer>();
 
             public void Anonymize(IPlayer player)
             {
-                ServerPlayer serverPlayer;
-                if (!anonymizedPlayers.TryGetValue(player.Id, out serverPlayer))
+                AnonymizedPlayer anonymizedPlayer;
+                if (!anonymizedPlayers.TryGetValue(player.Id, out anonymizedPlayer))
                 {
-                    serverPlayer = new ServerPlayer(player);
+                    anonymizedPlayer = new AnonymizedPlayer(player);
                 }
 
-                SteamServer.UpdatePlayer(serverPlayer.steamId, DEFAULT_ANONYMIZED_NAME, 0);
-                anonymizedPlayers.Add(player.Id, serverPlayer);
+                SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, DEFAULT_ANONYMIZED_NAME, 0);
+                anonymizedPlayers.Add(player.Id, anonymizedPlayer);
             }
 
             public void Deanonymize(IPlayer player)
             {
-                var serverPlayer = anonymizedPlayers[player.Id];
-                SteamServer.UpdatePlayer(serverPlayer.steamId, serverPlayer.player.Name, 0);
+                var anonymizedPlayer = anonymizedPlayers[player.Id];
+                SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, anonymizedPlayer.Player.Name, 0);
             }
 
             public void Remove(IPlayer player)
             {
                 anonymizedPlayers.Remove(player.Id);
             }
-        }
 
-        private class ServerPlayer
-        {
-            public SteamId steamId { get; }
-            public IPlayer player { get; }
-
-            public ServerPlayer(IPlayer player)
+            private class AnonymizedPlayer
             {
-                this.player = player;
+                public SteamId SteamID { get; }
+                public IPlayer Player { get; }
 
-                var steamId = new SteamId();
-                steamId.Value = Convert.ToUInt64(player.Id);
-                this.steamId = steamId;
+                public AnonymizedPlayer(IPlayer player)
+                {
+                    Player = player;
+
+                    SteamID = new SteamId
+                    {
+                        Value = Convert.ToUInt64(player.Id)
+                    };
+                }
             }
         }
     }
