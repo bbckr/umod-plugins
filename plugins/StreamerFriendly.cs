@@ -10,18 +10,25 @@ namespace Oxide.Plugins
     class StreamerFriendly : RustPlugin
     {
         private StreamerFriendlyConfig config;
-        private Anonymizer anonymizer = new Anonymizer();
+        private Anonymizer anonymizer;
 
         #region Hooks
 
         void Loaded()
         {
-            // Anonymize player info
-            var activeBasePlayers = BasePlayer.activePlayerList;
-            for (int i = 0; i < activeBasePlayers.Count; i++)
+            if (!config.Enabled)
             {
-                anonymizer.Anonymize(activeBasePlayers[i].IPlayer);
+                Disable();
+                Puts("Plugin is not enabled: skipping start");
+                return;
             }
+
+            Enable();
+        }
+
+        void Unload()
+        {
+            Disable();
         }
 
         void OnUserConnected(IPlayer player)
@@ -35,17 +42,40 @@ namespace Oxide.Plugins
             anonymizer.Remove(player);
         }
 
-        void Unload()
+        #endregion Hooks
+
+        #region Helpers
+
+        private void Enable()
         {
-            // Deanonymize player info
-            var activeBasePlayers = BasePlayer.activePlayerList;
-            for (int i = 0; i < activeBasePlayers.Count; i++)
+            if (anonymizer != null)
             {
-                anonymizer.Deanonymize(activeBasePlayers[i].IPlayer);
+                return;
             }
+
+            // Anonymize all active players
+            anonymizer = new Anonymizer(BasePlayer.activePlayerList);
+
+            Subscribe("OnUserConnected");
+            Subscribe("OnUserDisconnected");
         }
 
-        #endregion Hooks
+        private void Disable()
+        {
+            if (anonymizer == null)
+            {
+                return;
+            }
+
+            Unsubscribe("OnUserConnected");
+            Unsubscribe("OnUserDisconnected");
+
+            // Deanonymize all active players
+            anonymizer.Dispose();
+            anonymizer = null;
+        }
+
+        #endregion Helpers
 
         #region Configuration
 
@@ -99,32 +129,57 @@ namespace Oxide.Plugins
 
         #region Anonymization
 
-        private class Anonymizer
+        private class Anonymizer: IDisposable
         {
             private const string DEFAULT_ANONYMIZED_NAME = "StreamerFriendly";
-            private IDictionary<string, AnonymizedPlayer> anonymizedPlayers = new Dictionary<string, AnonymizedPlayer>();
+            private IDictionary<string, AnonymizedPlayer> AnonymizedPlayers;
+
+            public Anonymizer(ListHashSet<BasePlayer> activePlayers)
+            {
+                AnonymizedPlayers = new Dictionary<string, AnonymizedPlayer>();
+                foreach (BasePlayer activePlayer in activePlayers)
+                {
+                    Anonymize(activePlayer.IPlayer);
+                }
+            }
 
             public void Anonymize(IPlayer player)
             {
                 AnonymizedPlayer anonymizedPlayer;
-                if (!anonymizedPlayers.TryGetValue(player.Id, out anonymizedPlayer))
+                if (!AnonymizedPlayers.TryGetValue(player.Id, out anonymizedPlayer))
                 {
                     anonymizedPlayer = new AnonymizedPlayer(player);
                 }
 
                 SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, DEFAULT_ANONYMIZED_NAME, 0);
-                anonymizedPlayers.Add(player.Id, anonymizedPlayer);
+                AnonymizedPlayers.Add(player.Id, anonymizedPlayer);
             }
 
             public void Deanonymize(IPlayer player)
             {
-                var anonymizedPlayer = anonymizedPlayers[player.Id];
+                var anonymizedPlayer = AnonymizedPlayers[player.Id];
                 SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, anonymizedPlayer.Player.Name, 0);
+            }
+
+            public void Deanonymize(string playerID)
+            {
+                var anonymizedPlayer = AnonymizedPlayers[playerID];
+                SteamServer.UpdatePlayer(anonymizedPlayer.SteamID, anonymizedPlayer.Player.Name, 0);
+            }
+
+            public void Dispose()
+            {
+                foreach(string playerID in AnonymizedPlayers.Keys)
+                {
+                    Deanonymize(playerID);
+                }
+
+                AnonymizedPlayers = null;
             }
 
             public void Remove(IPlayer player)
             {
-                anonymizedPlayers.Remove(player.Id);
+                AnonymizedPlayers.Remove(player.Id);
             }
 
             private class AnonymizedPlayer
