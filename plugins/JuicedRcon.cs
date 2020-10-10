@@ -32,7 +32,7 @@ namespace Oxide.Plugins
         {
             if (!config.Enabled)
             {
-                Log(LogType.Log, "rcon server is not enabled: skipping start");
+                Puts("Plugin is not enabled: skipping start of rcon server");
                 return;
             }
 
@@ -57,14 +57,14 @@ namespace Oxide.Plugins
         {
             if (config.Enabled)
             {
-                return $"plugin {info.Title} is already enabled";
+                return $"Plugin is already enabled";
             }
 
             config.Enabled = true;
             Enable();
 
             SaveConfig();
-            return $"plugin {info.Title} is enabled";
+            return $"Plugin is enabled";
         }
 
         /// <summary>
@@ -76,14 +76,14 @@ namespace Oxide.Plugins
         {
             if (!config.Enabled)
             {
-                return $"plugin {info.Title} is already disabled";
+                return $"Plugin is already disabled";
             }
 
             config.Enabled = false;
             Disable();
 
             SaveConfig();
-            return $"plugin {info.Title} is disabled";
+            return $"Plugin is disabled";
         }
 
         /// <summary>
@@ -457,15 +457,15 @@ namespace Oxide.Plugins
         /// <summary>
         /// CommandType contains the various command types for RCON commands
         /// </summary>
-        private class CommandType
+        private static class CommandType
         {
-            public static readonly string CommandEcho = "echo";
-            public static readonly string CommandSay = "say";
+            public const string CommandEcho = "echo";
+            public const string CommandSay = "say";
 
-            public static readonly string CommandJuicedRconEnable = "juicedrcon.enable";
-            public static readonly string CommandJuicedRconDisable = "juicedrcon.disable";
-            public static readonly string CommandJuicedRconProfile = "juicedrcon.profile";
-            public static readonly string CommandJuicedRconSay = "juicedrcon.say";
+            public const string CommandJuicedRconEnable = "juicedrcon.enable";
+            public const string CommandJuicedRconDisable = "juicedrcon.disable";
+            public const string CommandJuicedRconProfile = "juicedrcon.profile";
+            public const string CommandJuicedRconSay = "juicedrcon.say";
         }
 
         /// <summary>
@@ -473,8 +473,8 @@ namespace Oxide.Plugins
         /// </summary>
         private static class RemoteMessageType
         {
-            public static readonly string Generic = "Generic";
-            public static readonly string Chat = "Chat";
+            public const string Generic = "Generic";
+            public const string Chat = "Chat";
 
             /// <summary>
             /// PatternChat matches generic chat messages or Better Chat prefixed chat messages
