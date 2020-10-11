@@ -190,11 +190,11 @@ namespace Oxide.Plugins
 
                 public List<string> Left { get; } = new List<string>()
                 {
-                    "swole", "juiced", "tryhard", "creeping", "slimy", "sleeping", "scummy", "wholesome", "salty", "enraged", "floppy", "friendly", "raided", "honest", "deceitful", "diplomatic", "sincere", "courageous", "fragile", "cynical", "impulsive", "obnoxious", "rusty", "chippy", "moist", "juicy", "spicy", "flaming", "sweaty", "greasy", "kinetic", "toxic", "silent", "spoiled", "jealous", "gullible", "nauseous", "abusive", "vulgar", "repulsive", "vibing", "reactionary", "sleazy", "sociopathic", "prudent", "nifty", "mouthbreathing", "crafty"
+                    "swole", "juiced", "tryhard", "creeping", "slimy", "sleeping", "scummy", "wholesome", "salty", "enraged", "floppy", "friendly", "raided", "honest", "deceitful", "diplomatic", "sincere", "courageous", "fragile", "cynical", "impulsive", "obnoxious", "rusty", "chippy", "moist", "juicy", "spicy", "flaming", "sweaty", "greasy", "kinetic", "toxic", "silent", "spoiled", "jealous", "gullible", "nauseous", "abusive", "vulgar", "repulsive", "vibing", "reactionary", "sleazy", "sociopathic", "prudent", "nifty", "mouthbreathing", "crafty", "raunchy", "troublesome", "decrepit", "conniving", "camping", "thicc", "persistent", "scolding", "based", "friendzoned"
                 };
                 public List<string> Right { get; } = new List<string>()
                 {
-                    "newton", "clatter", "trombone", "trudy", "goblin", "jolene", "canuck", "danish", "mega", "stranger", "beancan", "newell", "valve", "freeman", "vance", "kleiner", "breen", "mossman", "calhoun", "sabotage", "grigori", "louis", "francis", "bill", "zoey", "chell", "benjamin", "sinatra", "liger", "yoda", "neapolitan", "neckbeard", "trumpling", "zerg", "hoarder", "squid", "simpleton", "maggot", "polliwog", "manchild", "legacy", "snake", "chinook", "cargo", "vagrant", "footman", "sausage"
+                    "newton", "clatter", "trombone", "trudy", "goblin", "jolene", "canuck", "danish", "mega", "stranger", "beancan", "newell", "valve", "freeman", "vance", "kleiner", "breen", "mossman", "calhoun", "sabotage", "grigori", "louis", "francis", "bill", "zoey", "chell", "benjamin", "sinatra", "liger", "yoda", "neapolitan", "neckbeard", "trumpling", "zerg", "hoarder", "squid", "simpleton", "maggot", "polliwog", "manchild", "legacy", "snake", "chinook", "cargo", "vagrant", "footman", "sausage", "manlet", "pinko", "chungus", "thot", "bellend", "onion", "orbiter", "potato", "gopnik", "delinquent", "bradley"
                 };
 
                 public string GenerateRandomName()
