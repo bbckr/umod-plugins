@@ -1,6 +1,3 @@
-#### Like what you see? Buy me a Beer!
-[![buy_me_a_beer](https://raw.githubusercontent.com/bbckr/assets/master/buymeabear.PNG)](https://www.buymeacoffee.com/bckr)
-
 # uMod Plugins for Rust
 
 The **Tower of Swole** collection of [uMod](https://umod.org/) plugins for running on a modded [PlayRust](https://rust.facepunch.com/) dedicated server.
